@@ -1,0 +1,2781 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>كارتك العراق | Cartak IQ - بطاقات شحن وكروت إلكترونية</title>
+    <!-- تحميل مكتبة Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- تحميل خط Cairo و Tajawal للغة العربية -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- أيقونات FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Cairo', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            dark: '#0B0F19',
+                            card: '#131A2A',
+                            surface: '#1C253B',
+                            emerald: '#10B981',
+                            indigo: '#6366F1'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* تخصيص شريط التمرير لجمالية أعلى */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0B0F19;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1C253B;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #10B981;
+        }
+        /* إخفاء شريط التمرير في التبويبات الأفقية للموبايل */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        @keyframes pulseGlow {
+            0%, 100% { box-shadow: 0 0 15px rgba(16, 185, 129, 0.2); }
+            50% { box-shadow: 0 0 25px rgba(16, 185, 129, 0.45); }
+        }
+        .glow-effect {
+            animation: pulseGlow 3s infinite;
+        }
+    </style>
+</head>
+<body class="bg-brand-dark text-slate-100 font-sans min-h-screen flex flex-col selection:bg-emerald-500 selection:text-white pb-20 md:pb-8">
+
+    <!-- إشعار منبثق (Toast Notification) بدلاً من alert() -->
+            <!-- أزرار المحفظة وطلباتي وحسابي -->
+            <div class="flex items-center gap-2 sm:gap-3">
+                <!-- رصيد المحفظة -->
+                <div class="bg-brand-surface border border-slate-700/70 rounded-xl px-2.5 sm:px-3 py-1.5 flex items-center gap-2">
+                    <div class="text-right">
+                        <span class="block text-[10px] text-slate-400 leading-none">المحفظة</span>
+                        <span id="wallet-balance-display" class="text-xs sm:text-base font-bold text-emerald-400">0 د.ع</span>
+                    </div>
+                    <button onclick="handleProtectedAction(openTopupModal)" title="شحن المحفظة" class="bg-emerald-500 hover:bg-emerald-600 active:scale-95 text-slate-950 font-bold text-xs px-2 sm:px-2.5 py-1.5 rounded-lg transition flex items-center gap-1 shadow-md shadow-emerald-500/20">
+                        <i class="fa-solid fa-plus"></i>
+                        <span class="hidden sm:inline">شحن</span>
+                    </button>
+                </div>
+
+                <!-- زر طلباتي -->
+                <button onclick="handleProtectedAction(openOrdersModal)" class="relative bg-brand-surface hover:bg-slate-800 border border-slate-700/70 text-slate-200 px-2.5 sm:px-3 py-2 rounded-xl transition flex items-center gap-2 active:scale-95">
+                    <i class="fa-solid fa-receipt text-indigo-400"></i>
+                    <span class="text-xs sm:text-sm font-semibold hidden md:inline">طلباتي</span>
+                    <span id="orders-badge" class="hidden bg-indigo-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">0</span>
+                </button>
+
+                <!-- زر لوحة تحكم الإدارة والمسؤولين -->
+                <button onclick="openAdminAccess()" class="bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/40 text-amber-400 px-2.5 sm:px-3 py-2 rounded-xl transition flex items-center gap-1.5 active:scale-95" title="لوحة تحكم المدير والمسؤولين">
+                    <i class="fa-solid fa-user-shield"></i>
+                    <span class="text-xs sm:text-sm font-bold hidden lg:inline">الإدارة</span>
+                </button>
+
+                <!-- زر تسجيل الدخول (يظهر للزائر) -->
+                <button id="header-login-btn" onclick="openAuthModal()" class="bg-gradient-to-l from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 text-white font-bold text-xs sm:text-sm px-3 sm:px-4 py-2 rounded-xl transition flex items-center gap-2 shadow-lg shadow-indigo-500/20 active:scale-95">
+                    <i class="fa-solid fa-right-to-bracket"></i>
+                    <span>دخول / تسجيل</span>
+                </button>
+
+                <!-- زر حسابي (يظهر بعد تسجيل الدخول) -->
+                <button id="header-profile-btn" onclick="openProfileModal()" class="hidden bg-brand-surface hover:bg-slate-800 border border-emerald-500/40 text-white px-2.5 sm:px-3 py-1.5 rounded-xl transition items-center gap-2 active:scale-95">
+                    <div id="header-avatar" class="w-7 h-7 rounded-lg bg-gradient-to-tr from-emerald-500 to-indigo-500 flex items-center justify-center text-xs font-extrabold text-slate-950">
+                        ع
+                    </div>
+                    <div class="text-right hidden sm:block">
+                        <span id="header-user-name" class="block text-xs font-bold text-white leading-tight">علي العراقي</span>
+                        <span id="header-user-gov" class="block text-[10px] text-emerald-400 leading-none">بغداد</span>
+                    </div>
+                    <i class="fa-solid fa-chevron-down text-[10px] text-slate-400"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- المحتوى الرئيسي -->
+    <main class="flex-1 max-w-6xl w-full mx-auto px-4 pt-5">
+        
+        <!-- بانر ترحيبي عروض العراق -->
+        <section class="relative overflow-hidden rounded-2xl bg-gradient-to-l from-indigo-900/90 via-brand-card to-emerald-950/80 border border-slate-800 p-5 sm:p-7 mb-6 shadow-xl">
+            <div class="relative z-10 max-w-xl">
+                <span class="inline-flex items-center gap-1.5 bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 text-xs font-bold px-3 py-1 rounded-full mb-3">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+                    متاح الآن عبر زين كاش وماستركارد الرافدين
+                </span>
+                <h2 class="text-xl sm:text-3xl font-extrabold text-white mb-2 leading-snug">
+                    اشحن رصيدك وألعابك المفضلة <span class="text-emerald-400">بلمح البصر!</span>
+                </h2>
+                <p class="text-xs sm:text-sm text-slate-300 mb-4 leading-relaxed">
+                    احصل على كود البطاقة فوراً على شاشتك بعد الدفع مباشرة. ندعم آسيا سيل، زين، كورك، شدات ببجي، وبطاقات المتاجر العالمية.
+                </p>
+                <div class="flex flex-wrap gap-2">
+                    <button onclick="handleProtectedAction(openTopupModal)" class="bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold text-xs sm:text-sm px-4 py-2.5 rounded-xl transition shadow-lg shadow-emerald-500/20 flex items-center gap-2">
+                        <i class="fa-solid fa-wallet"></i>
+                        شحن المحفظة الآن
+                    </button>
+                    <button onclick="handleProtectedAction(openOrdersModal)" class="bg-slate-800/80 hover:bg-slate-700 text-white font-semibold text-xs sm:text-sm px-4 py-2.5 rounded-xl border border-slate-700 transition flex items-center gap-2">
+                        <i class="fa-solid fa-key text-amber-400"></i>
+                        سجل الأكواد المشتراة
+                    </button>
+                </div>
+            </div>
+            <!-- عناصر زخرفية في الخلفية -->
+            <div class="hidden md:flex absolute left-8 top-1/2 -translate-y-1/2 items-center gap-4 opacity-90">
+                <div class="w-28 h-36 rounded-2xl bg-gradient-to-br from-rose-600 to-rose-900 p-3 flex flex-col justify-between shadow-2xl -rotate-6 border border-rose-400/30">
+                    <span class="text-xs font-bold text-white/80">Asiacell</span>
+                    <span class="text-lg font-extrabold text-white">10,000 د.ع</span>
+                </div>
+                <div class="w-28 h-36 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-700 p-3 flex flex-col justify-between shadow-2xl rotate-6 border border-amber-300/30">
+                    <span class="text-xs font-bold text-white/90">PUBG UC</span>
+                    <span class="text-lg font-extrabold text-white">325 UC</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- شريط البحث وتبويبات التصنيفات -->
+        <section class="mb-6 space-y-4">
+            <!-- حقل البحث -->
+            <div class="relative">
+                <i class="fa-solid fa-magnifying-glass absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+                <input type="text" id="search-input" oninput="filterProducts()" placeholder="ابحث عن بطاقة... (مثلاً: آسيا، زين، ببجي، آيتونز)" 
+                    class="w-full bg-brand-card border border-slate-800 focus:border-emerald-500 rounded-xl py-3 pr-11 pl-4 text-sm text-white placeholder-slate-400 outline-none transition">
+            </div>
+
+            <!-- تبويبات التصنيفات (Category Filter Tabs) -->
+            <div class="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1" id="category-tabs">
+                <button onclick="setCategory('all')" data-cat="all" class="cat-btn active bg-emerald-500 text-slate-950 font-bold text-xs sm:text-sm px-4 py-2.5 rounded-xl whitespace-nowrap transition flex items-center gap-2">
+                    <i class="fa-solid fa-border-all"></i>
+                    الكل
+                </button>
+                <button onclick="setCategory('telecom')" data-cat="telecom" class="cat-btn bg-brand-card hover:bg-brand-surface text-slate-300 border border-slate-800 font-semibold text-xs sm:text-sm px-4 py-2.5 rounded-xl whitespace-nowrap transition flex items-center gap-2">
+                    <i class="fa-solid fa-mobile-screen-button text-rose-400"></i>
+                    رصيد موبايل
+                </button>
+                <button onclick="setCategory('internet')" data-cat="internet" class="cat-btn bg-brand-card hover:bg-brand-surface text-slate-300 border border-slate-800 font-semibold text-xs sm:text-sm px-4 py-2.5 rounded-xl whitespace-nowrap transition flex items-center gap-2">
+                    <i class="fa-solid fa-wifi text-sky-400"></i>
+                    إنترنت
+                </button>
+                <button onclick="setCategory('gaming')" data-cat="gaming" class="cat-btn bg-brand-card hover:bg-brand-surface text-slate-300 border border-slate-800 font-semibold text-xs sm:text-sm px-4 py-2.5 rounded-xl whitespace-nowrap transition flex items-center gap-2">
+                    <i class="fa-solid fa-gamepad text-amber-400"></i>
+                    ألعاب
+                </button>
+                <button onclick="setCategory('shopping')" data-cat="shopping" class="cat-btn bg-brand-card hover:bg-brand-surface text-slate-300 border border-slate-800 font-semibold text-xs sm:text-sm px-4 py-2.5 rounded-xl whitespace-nowrap transition flex items-center gap-2">
+                    <i class="fa-solid fa-bag-shopping text-indigo-400"></i>
+                    بطاقات تسوق
+                </button>
+            </div>
+        </section>
+
+        <!-- شبكة عرض البطاقات (Product Grid) -->
+        <section>
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-base sm:text-lg font-bold text-white flex items-center gap-2">
+                    <span class="w-1.5 h-5 bg-emerald-500 rounded-full"></span>
+                    البطاقات المتوفرة للتسليم الفوري
+                </h3>
+                <span id="products-count" class="text-xs text-slate-400 bg-brand-card px-2.5 py-1 rounded-lg border border-slate-800">9 بطاقات</span>
+            </div>
+
+            <!-- حاوية البطاقات -->
+            <div id="products-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <!-- يتم توليد البطاقات ديناميكياً عبر JavaScript -->
+            </div>
+
+            <!-- رسالة في حال عدم وجود نتائج بحث -->
+            <div id="empty-state" class="hidden text-center py-12 bg-brand-card rounded-2xl border border-slate-800">
+                <i class="fa-solid fa-box-open text-4xl text-slate-600 mb-3"></i>
+                <p class="text-slate-300 font-semibold">عذراً، لم نجد بطاقة تطابق بحثك!</p>
+                <button onclick="resetFilters()" class="mt-3 text-xs text-emerald-400 hover:underline">عرض جميع البطاقات</button>
+            </div>
+        </section>
+
+        <!-- قسم طرق الدفع المدعومة في العراق -->
+        <section class="mt-10 bg-brand-card/60 border border-slate-800/80 rounded-2xl p-5 text-center">
+            <p class="text-xs text-slate-400 mb-3 font-medium">بوابات الدفع المعتمدة والمؤمنة 100% داخل العراق</p>
+            <div class="flex flex-wrap justify-center items-center gap-3 sm:gap-6">
+                <span class="px-3 py-1.5 rounded-xl bg-brand-surface border border-slate-700/60 text-xs font-bold text-pink-400 flex items-center gap-1.5">
+                    <i class="fa-solid fa-mobile-screen-button"></i> زين كاش ZainCash
+                </span>
+                <span class="px-3 py-1.5 rounded-xl bg-brand-surface border border-slate-700/60 text-xs font-bold text-amber-400 flex items-center gap-1.5">
+                    <i class="fa-solid fa-credit-card"></i> ماستركارد الرافدين / كي كارد
+                </span>
+                <span class="px-3 py-1.5 rounded-xl bg-brand-surface border border-slate-700/60 text-xs font-bold text-rose-400 flex items-center gap-1.5">
+                    <i class="fa-solid fa-wallet"></i> آسيا حوالة AsiaHawala
+                </span>
+                <span class="px-3 py-1.5 rounded-xl bg-brand-surface border border-slate-700/60 text-xs font-bold text-sky-400 flex items-center gap-1.5">
+                    <i class="fa-solid fa-bolt"></i> فاست باي FastPay
+                </span>
+            </div>
+        </section>
+    </main>
+
+    <!-- شريط تنقل سفلي للهواتف الذكية (Mobile Bottom Navigation) -->
+    <nav class="md:hidden fixed bottom-0 inset-x-0 bg-brand-card/95 backdrop-blur-lg border-t border-slate-800 z-40 px-2 py-2 flex justify-around items-center">
+        <button onclick="window.scrollTo({top: 0, behavior: 'smooth'})" class="flex flex-col items-center gap-1 text-emerald-400 px-3">
+            <i class="fa-solid fa-house text-base"></i>
+            <span class="text-[10px] font-bold">الرئيسية</span>
+        </button>
+        <button onclick="handleProtectedAction(openOrdersModal)" class="relative flex flex-col items-center gap-1 text-slate-400 hover:text-white px-3">
+            <i class="fa-solid fa-receipt text-base"></i>
+            <span class="text-[10px] font-semibold">طلباتي</span>
+        </button>
+        <button onclick="handleProtectedAction(openTopupModal)" class="flex flex-col items-center gap-1 text-slate-400 hover:text-white px-3">
+            <i class="fa-solid fa-wallet text-base"></i>
+            <span class="text-[10px] font-semibold">المحفظة</span>
+        </button>
+        <button onclick="openAdminAccess()" class="flex flex-col items-center gap-1 text-amber-400 hover:text-amber-300 px-3">
+            <i class="fa-solid fa-user-shield text-base"></i>
+            <span class="text-[10px] font-bold">الإدارة</span>
+        </button>
+        <button onclick="handleAccountNavClick()" class="flex flex-col items-center gap-1 text-slate-400 hover:text-white px-3">
+            <i class="fa-solid fa-user text-base"></i>
+            <span id="mobile-nav-account-label" class="text-[10px] font-semibold">دخول</span>
+        </button>
+    </nav>
+
+    <!-- ===================================================================== -->
+    <!-- 0. نافذة تسجيل الدخول وإنشاء الحساب العراقي (Iraqi Phone + OTP Auth Modal) -->
+    <!-- ===================================================================== -->
+    <div id="auth-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+        <div class="bg-brand-card border border-slate-700 rounded-2xl w-full max-w-md overflow-hidden shadow-2xl transform transition-all">
+            <!-- رأس النافذة -->
+            <div class="px-5 py-4 border-b border-slate-800 flex items-center justify-between bg-brand-surface/50">
+                <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center">
+                        <i class="fa-solid fa-shield-halved"></i>
+                    </div>
+                    <h3 id="auth-modal-title" class="font-bold text-base text-white">تسجيل الدخول السريع</h3>
+                </div>
+                <button onclick="closeModal('auth-modal')" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center transition">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div class="p-6">
+                <!-- الخطوة 1: إدخال رقم الهاتف العراقي -->
+                <div id="auth-step-phone" class="space-y-4">
+                    <div class="text-center mb-2">
+                        <p class="text-sm text-slate-300 font-semibold">أهلاً بك في كارتك العراق 🇮🇶</p>
+                        <p class="text-xs text-slate-400 mt-1">أدخل رقم هاتفك العراقي لتسجيل الدخول أو إنشاء حساب جديد</p>
+                    </div>
+
+                    <!-- اختيار طريقة استلام الكود -->
+                    <div class="grid grid-cols-2 gap-2 bg-brand-dark p-1 rounded-xl border border-slate-800">
+                        <button type="button" id="channel-whatsapp" onclick="setOtpChannel('whatsapp')" class="py-2 rounded-lg text-xs font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 flex items-center justify-center gap-1.5 transition">
+                            <i class="fa-brands fa-whatsapp text-sm"></i> عبر واتساب
+                        </button>
+                        <button type="button" id="channel-sms" onclick="setOtpChannel('sms')" class="py-2 rounded-lg text-xs font-semibold text-slate-400 hover:text-white flex items-center justify-center gap-1.5 transition">
+                            <i class="fa-solid fa-comment-sms text-sm"></i> رسالة نصية SMS
+                        </button>
+                    </div>
+
+                    <!-- حقل إدخال الرقم -->
+                    <div>
+                        <div class="flex items-center justify-between mb-1.5">
+                            <label class="text-xs font-bold text-slate-300">رقم الهاتف العراقي:</label>
+                            <span id="carrier-badge" class="text-[11px] font-bold px-2 py-0.5 rounded bg-slate-800 text-slate-400">
+                                بانتظار الرقم...
+                            </span>
+                        </div>
+                        <div dir="ltr" class="flex items-center bg-brand-dark border border-slate-700 focus-within:border-emerald-500 rounded-xl overflow-hidden transition">
+                            <div class="px-3.5 py-3 bg-brand-surface border-r border-slate-700 flex items-center gap-2 text-sm font-bold text-slate-200 select-none">
+                                <span>🇮🇶</span>
+                                <span>+964</span>
+                            </div>
+                            <input type="tel" id="iraqi-phone-input" maxlength="11" oninput="validateIraqiPhone(this.value)" placeholder="0770 123 4567" 
+                                class="w-full bg-transparent px-3.5 py-3 text-base font-mono font-bold text-white placeholder-slate-600 outline-none tracking-wider">
+                        </div>
+                        <p id="phone-error-msg" class="hidden text-[11px] text-rose-400 mt-1.5 flex items-center gap-1">
+                            <i class="fa-solid fa-circle-exclamation"></i>
+                            <span>يرجى إدخال رقم عراقي صحيح يبدأ بـ 077 أو 078 أو 075 أو 079 (11 مرتبة).</span>
+                        </p>
+                    </div>
+
+                    <!-- خيار مستخدم جديد -->
+                    <div class="flex items-center justify-between pt-1">
+                        <label class="flex items-center gap-2 cursor-pointer text-xs text-slate-300">
+                            <input type="checkbox" id="is-new-user-checkbox" class="accent-emerald-500 w-4 h-4 rounded">
+                            <span>حساب جديد (إضافة الاسم والمحافظة)</span>
+                        </label>
+                        <button type="button" onclick="fillDemoPhone()" class="text-[11px] text-indigo-400 hover:underline">
+                            تعبئة رقم تجريبي
+                        </button>
+                    </div>
+
+                    <button id="send-otp-btn" onclick="sendOtpCode()" disabled class="w-full py-3.5 rounded-xl bg-emerald-500 disabled:bg-slate-800 disabled:text-slate-500 hover:bg-emerald-400 text-slate-950 font-extrabold text-sm transition flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/10">
+                        <span>إرسال رمز التحقق (OTP)</span>
+                        <i class="fa-solid fa-arrow-left"></i>
+                    </button>
+                </div>
+
+                <!-- الخطوة 2: إدخال رمز التحقق OTP (4 خانات) -->
+                <div id="auth-step-otp" class="hidden space-y-5">
+                    <div class="text-center">
+                        <span id="otp-sent-channel-badge" class="inline-flex items-center gap-1.5 text-[11px] font-bold bg-emerald-500/15 text-emerald-400 px-3 py-1 rounded-full mb-2">
+                            <i class="fa-brands fa-whatsapp"></i> تم الإرسال عبر واتساب
+                        </span>
+                        <p class="text-xs text-slate-300">أدخل الرمز المكون من 4 أرقام المرسل إلى:</p>
+                        <p id="otp-phone-display" dir="ltr" class="text-base font-mono font-extrabold text-white mt-1">+964 770 123 4567</p>
+                        <button type="button" onclick="backToPhoneStep()" class="text-[11px] text-indigo-400 hover:underline mt-1">
+                            تغيير الرقم؟
+                        </button>
+                    </div>
+
+                    <!-- مربعات OTP الأربعة -->
+                    <div dir="ltr" class="flex justify-center gap-3 my-4" id="otp-inputs-container">
+                        <input type="text" inputmode="numeric" maxlength="1" class="otp-box w-14 h-14 text-center text-2xl font-mono font-extrabold bg-brand-dark border-2 border-slate-700 focus:border-emerald-500 rounded-xl text-white outline-none transition">
+                        <input type="text" inputmode="numeric" maxlength="1" class="otp-box w-14 h-14 text-center text-2xl font-mono font-extrabold bg-brand-dark border-2 border-slate-700 focus:border-emerald-500 rounded-xl text-white outline-none transition">
+                        <input type="text" inputmode="numeric" maxlength="1" class="otp-box w-14 h-14 text-center text-2xl font-mono font-extrabold bg-brand-dark border-2 border-slate-700 focus:border-emerald-500 rounded-xl text-white outline-none transition">
+                        <input type="text" inputmode="numeric" maxlength="1" class="otp-box w-14 h-14 text-center text-2xl font-mono font-extrabold bg-brand-dark border-2 border-slate-700 focus:border-emerald-500 rounded-xl text-white outline-none transition">
+                    </div>
+
+                    <!-- تلميح الكود التجريبي -->
+                    <div class="bg-indigo-500/10 border border-indigo-500/30 rounded-xl p-2.5 text-center flex items-center justify-between">
+                        <span class="text-[11px] text-indigo-300">💡 رمز التحقق التجريبي السريع: <strong class="font-mono text-white text-xs">1234</strong></span>
+                        <button type="button" onclick="autoFillOtp()" class="text-[11px] bg-indigo-500 hover:bg-indigo-400 text-white font-bold px-2.5 py-1 rounded-lg transition">
+                            لصق 1234
+                        </button>
+                    </div>
+
+                    <!-- العداد التنازلي لإعادة الإرسال -->
+                    <div class="text-center text-xs text-slate-400">
+                        <span id="resend-timer-text">إعادة إرسال الرمز خلال <strong id="otp-countdown" class="text-emerald-400 font-mono">00:45</strong></span>
+                        <button type="button" id="resend-otp-btn" onclick="resendOtp()" class="hidden text-emerald-400 font-bold hover:underline">
+                            إعادة إرسال الرمز الآن
+                        </button>
+                    </div>
+
+                    <button onclick="verifyOtpCode()" class="w-full py-3.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold text-sm transition flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20">
+                        <i class="fa-solid fa-check-circle"></i>
+                        <span>تأكيد الرمز والمتابعة</span>
+                    </button>
+                </div>
+
+                <!-- الخطوة 3: إكمال بيانات الحساب الجديد (الاسم والمحافظة العراقية) -->
+                <div id="auth-step-register" class="hidden space-y-4">
+                    <div class="text-center mb-2">
+                        <div class="w-12 h-12 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-xl mx-auto mb-2">
+                            <i class="fa-solid fa-user-plus"></i>
+                        </div>
+                        <h4 class="font-bold text-base text-white">إكمال إنشاء الحساب الجديد</h4>
+                        <p class="text-xs text-slate-400">احصل على <strong class="text-emerald-400">25,000 د.ع</strong> رصيد ترحيبي تجريبي في محفظتك!</p>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-300 mb-1.5">الاسم الكامل:</label>
+                        <input type="text" id="reg-fullname" placeholder="مثلاً: مصطفى كاظم الجبوري" 
+                            class="w-full bg-brand-dark border border-slate-700 focus:border-emerald-500 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 outline-none transition">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-300 mb-1.5">المحافظة:</label>
+                        <select id="reg-governorate" class="w-full bg-brand-dark border border-slate-700 focus:border-emerald-500 rounded-xl px-4 py-3 text-sm text-white outline-none transition">
+                            <option value="بغداد">بغداد</option>
+                            <option value="كركوك">كركوك</option>
+                            <option value="البصرة">البصرة</option>
+                            <option value="أربيل">أربيل</option>
+                            <option value="نينوى">نينوى (الموصل)</option>
+                            <option value="السليمانية">السليمانية</option>
+                            <option value="النجف">النجف الأشرف</option>
+                            <option value="كربلاء">كربلاء المقدسة</option>
+                            <option value="الأنبار">الأنبار</option>
+                            <option value="بابل">بابل</option>
+                            <option value="ذي قار">ذي قار</option>
+                            <option value="ديالى">ديالى</option>
+                            <option value="دهوك">دهوك</option>
+                            <option value="واسط">واسط</option>
+                            <option value="صلاح الدين">صلاح الدين</option>
+                            <option value="ميسان">ميسان</option>
+                            <option value="الديوانية">الديوانية</option>
+                            <option value="المثنى">المثنى</option>
+                        </select>
+                    </div>
+
+                    <button onclick="completeRegistration()" class="w-full py-3.5 rounded-xl bg-gradient-to-l from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-slate-950 font-extrabold text-sm transition flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20">
+                        <i class="fa-solid fa-sparkles"></i>
+                        <span>إنشاء الحساب وبدء التسوق</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- 0.5 نافذة حسابي والملف الشخصي (My Account / Profile Modal) -->
+    <!-- ===================================================================== -->
+    <div id="profile-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-black/75 backdrop-blur-sm">
+        <div class="bg-brand-card border border-slate-700 rounded-2xl w-full max-w-md overflow-hidden shadow-2xl">
+            <div class="px-5 py-4 border-b border-slate-800 flex items-center justify-between bg-brand-surface/50">
+                <h3 class="font-bold text-base text-white flex items-center gap-2">
+                    <i class="fa-solid fa-user-gear text-emerald-400"></i>
+                    حسابي الشخصي
+                </h3>
+                <button onclick="closeModal('profile-modal')" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center transition">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div class="p-5 space-y-5">
+                <!-- بطاقة معلومات المستخدم -->
+                <div class="bg-gradient-to-l from-indigo-900/60 to-brand-surface border border-slate-700 rounded-2xl p-4 flex items-center gap-4">
+                    <div id="profile-modal-avatar" class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-emerald-500 to-indigo-500 flex items-center justify-center text-2xl font-extrabold text-slate-950 shrink-0 shadow-lg">
+                        م
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <span class="inline-flex items-center gap-1 text-[10px] font-bold bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded-full mb-1">
+                            <i class="fa-solid fa-circle-check"></i> حساب موثق برقم الهاتف
+                        </span>
+                        <h4 id="profile-modal-name" class="font-extrabold text-base text-white truncate">مصطفى العراقي</h4>
+                        <p id="profile-modal-phone" dir="ltr" class="text-xs font-mono text-slate-300 text-right">+964 770 123 4567</p>
+                    </div>
+                </div>
+
+                <!-- تعديل الاسم والمحافظة -->
+                <div class="space-y-3 bg-brand-surface/50 border border-slate-800 rounded-xl p-4">
+                    <p class="text-xs font-bold text-slate-300">تحديث بيانات الحساب:</p>
+                    <div>
+                        <label class="block text-[11px] text-slate-400 mb-1">الاسم الكامل</label>
+                        <input type="text" id="edit-profile-name" class="w-full bg-brand-dark border border-slate-700 focus:border-emerald-500 rounded-xl px-3.5 py-2.5 text-sm text-white outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] text-slate-400 mb-1">المحافظة</label>
+                        <select id="edit-profile-gov" class="w-full bg-brand-dark border border-slate-700 focus:border-emerald-500 rounded-xl px-3.5 py-2.5 text-sm text-white outline-none">
+                            <option value="بغداد">بغداد</option>
+                            <option value="كركوك">كركوك</option>
+                            <option value="البصرة">البصرة</option>
+                            <option value="أربيل">أربيل</option>
+                            <option value="نينوى">نينوى (الموصل)</option>
+                            <option value="السليمانية">السليمانية</option>
+                            <option value="النجف">النجف الأشرف</option>
+                            <option value="كربلاء">كربلاء المقدسة</option>
+                            <option value="الأنبار">الأنبار</option>
+                            <option value="بابل">بابل</option>
+                            <option value="ذي قار">ذي قار</option>
+                            <option value="ديالى">ديالى</option>
+                            <option value="دهوك">دهوك</option>
+                            <option value="واسط">واسط</option>
+                            <option value="صلاح الدين">صلاح الدين</option>
+                            <option value="ميسان">ميسان</option>
+                            <option value="الديوانية">الديوانية</option>
+                            <option value="المثنى">المثنى</option>
+                        </select>
+                    </div>
+                    <button onclick="saveProfileChanges()" class="w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs transition">
+                        حفظ التعديلات
+                    </button>
+                </div>
+
+                <!-- اختصارات سريعة وتسجيل الخروج -->
+                <div class="grid grid-cols-2 gap-2.5">
+                    <button onclick="closeModal('profile-modal'); openTopupModal();" class="py-2.5 px-3 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/30 text-emerald-400 font-bold text-xs flex items-center justify-center gap-2 transition">
+                        <i class="fa-solid fa-wallet"></i> شحن المحفظة
+                    </button>
+                    <button onclick="closeModal('profile-modal'); openOrdersModal();" class="py-2.5 px-3 rounded-xl bg-brand-surface hover:bg-slate-800 border border-slate-700 text-slate-200 font-bold text-xs flex items-center justify-center gap-2 transition">
+                        <i class="fa-solid fa-receipt"></i> سجل طلباتي
+                    </button>
+                </div>
+
+                <button onclick="closeModal('profile-modal'); openAdminAccess();" class="w-full py-2.5 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/30 text-amber-400 font-bold text-xs transition flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-user-shield"></i>
+                    الدخول إلى لوحة تحكم الإدارة والمسؤولين
+                </button>
+
+                <button onclick="logoutUser()" class="w-full py-3 rounded-xl bg-rose-500/15 hover:bg-rose-500 hover:text-white border border-rose-500/30 text-rose-400 font-bold text-xs transition flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-right-from-bracket"></i>
+                    تسجيل الخروج من الحساب
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- 0.8 نافذة تسجيل دخول الإدارة والمسؤولين (Admin PIN / Role Access Modal) -->
+    <!-- ===================================================================== -->
+    <div id="admin-login-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+        <div class="bg-brand-card border border-amber-500/40 rounded-2xl w-full max-w-md overflow-hidden shadow-2xl">
+            <div class="px-5 py-4 border-b border-slate-800 flex items-center justify-between bg-brand-surface/70">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-9 h-9 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center">
+                        <i class="fa-solid fa-user-shield"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-base text-white">بوابة الإدارة والمسؤولين</h3>
+                        <p class="text-[11px] text-slate-400">Cartak IQ Control Center</p>
+                    </div>
+                </div>
+                <button onclick="closeModal('admin-login-modal')" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center transition">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div class="p-6 space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-slate-300 mb-1.5">اختر حساب المسؤول / المشرف:</label>
+                    <select id="admin-account-select" class="w-full bg-brand-dark border border-slate-700 focus:border-amber-500 rounded-xl px-4 py-3 text-sm text-white outline-none transition">
+                        <!-- يتم تعبئتها ديناميكياً من قائمة المشرفين -->
+                    </select>
+                </div>
+
+                <div>
+                    <div class="flex items-center justify-between mb-1.5">
+                        <label class="text-xs font-bold text-slate-300">رمز المرور السري (PIN):</label>
+                        <span class="text-[11px] text-amber-400 font-mono">الرمز التجريبي: 2026</span>
+                    </div>
+                    <input type="password" id="admin-pin-input" maxlength="6" placeholder="••••" onkeydown="if(event.key==='Enter') verifyAdminLogin()"
+                        class="w-full bg-brand-dark border border-slate-700 focus:border-amber-500 rounded-xl px-4 py-3 text-center text-xl font-mono tracking-[0.5em] text-white outline-none transition">
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-2">
+                    <button onclick="verifyAdminLogin()" class="py-3 px-4 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-xs sm:text-sm transition flex items-center justify-center gap-2 shadow-lg shadow-amber-500/20">
+                        <i class="fa-solid fa-unlock-keyhole"></i>
+                        دخول بالرمز
+                    </button>
+                    <button onclick="quickDemoAdminLogin()" class="py-3 px-4 rounded-xl bg-brand-surface hover:bg-slate-800 border border-slate-700 text-emerald-400 font-bold text-xs sm:text-sm transition flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-bolt"></i>
+                        دخول تجريبي كمدير عام
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- 0.9 لوحة تحكم المدير والمسؤولين المتكاملة (Full-Screen Admin Dashboard) -->
+    <!-- ===================================================================== -->
+    <div id="admin-dashboard-view" class="fixed inset-0 z-50 hidden bg-brand-dark flex-col overflow-hidden">
+        <!-- الشريط العلوي للوحة التحكم -->
+        <header class="bg-brand-card border-b border-slate-800 px-4 sm:px-6 py-3 flex items-center justify-between shrink-0">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center text-slate-950 font-extrabold text-lg shadow-lg shadow-amber-500/20">
+                    <i class="fa-solid fa-shield-halved"></i>
+                </div>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <h2 class="font-extrabold text-sm sm:text-lg text-white">لوحة تحكم كارتك العراق</h2>
+                        <span id="admin-active-role-badge" class="text-[10px] font-extrabold bg-amber-500/20 text-amber-400 border border-amber-500/30 px-2 py-0.5 rounded-full">مدير عام</span>
+                    </div>
+                    <p id="admin-active-name-label" class="text-[11px] text-slate-400">مرحباً، أ. أحمد البياتي</p>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2 sm:gap-3">
+                <button onclick="exitAdminDashboard()" class="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold text-xs sm:text-sm px-3 sm:px-4 py-2 rounded-xl transition flex items-center gap-2 shadow-lg shadow-emerald-500/20 active:scale-95">
+                    <i class="fa-solid fa-store"></i>
+                    <span>العودة للمتجر (واجهة الزبون)</span>
+                </button>
+                <button onclick="logoutAdmin()" title="تسجيل خروج الإدارة" class="w-9 h-9 rounded-xl bg-rose-500/15 hover:bg-rose-500 text-rose-400 hover:text-white border border-rose-500/30 flex items-center justify-center transition">
+                    <i class="fa-solid fa-right-from-bracket"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- تبويبات التنقل للموبايل في لوحة الإدارة -->
+        <div class="lg:hidden bg-brand-card/80 border-b border-slate-800 px-3 py-2 flex items-center gap-2 overflow-x-auto no-scrollbar shrink-0">
+            <button onclick="switchAdminTab('overview')" data-admin-tab="overview" class="admin-nav-btn active bg-amber-500 text-slate-950 font-bold text-xs px-3.5 py-2 rounded-xl whitespace-nowrap flex items-center gap-1.5">
+                <i class="fa-solid fa-chart-pie"></i> الإحصائيات
+            </button>
+            <button onclick="switchAdminTab('products')" data-admin-tab="products" class="admin-nav-btn bg-brand-surface text-slate-300 font-semibold text-xs px-3.5 py-2 rounded-xl whitespace-nowrap flex items-center gap-1.5">
+                <i class="fa-solid fa-tags"></i> البطاقات والأسعار
+            </button>
+            <button onclick="switchAdminTab('vault')" data-admin-tab="vault" class="admin-nav-btn bg-brand-surface text-slate-300 font-semibold text-xs px-3.5 py-2 rounded-xl whitespace-nowrap flex items-center gap-1.5">
+                <i class="fa-solid fa-vault"></i> مخزون الأكواد
+            </button>
+            <button onclick="switchAdminTab('orders')" data-admin-tab="orders" class="admin-nav-btn bg-brand-surface text-slate-300 font-semibold text-xs px-3.5 py-2 rounded-xl whitespace-nowrap flex items-center gap-1.5">
+                <i class="fa-solid fa-list-check"></i> الطلبات
+            </button>
+            <button onclick="switchAdminTab('staff')" data-admin-tab="staff" class="admin-nav-btn bg-brand-surface text-slate-300 font-semibold text-xs px-3.5 py-2 rounded-xl whitespace-nowrap flex items-center gap-1.5">
+                <i class="fa-solid fa-users-gear"></i> المشرفون
+            </button>
+        </div>
+
+        <!-- جسم لوحة التحكم (قائمة جانبية + منطقة المحتوى) -->
+        <div class="flex-1 flex overflow-hidden">
+            <!-- القائمة الجانبية للديسكتوب -->
+            <aside class="hidden lg:flex w-64 bg-brand-card border-l border-slate-800 p-4 flex-col justify-between shrink-0">
+                <div class="space-y-2">
+                    <p class="text-[11px] font-bold text-slate-500 px-3 mb-2">القائمة الرئيسية للإدارة</p>
+                    <button onclick="switchAdminTab('overview')" data-admin-tab="overview" class="admin-nav-btn active w-full text-right px-4 py-3 rounded-xl bg-amber-500 text-slate-950 font-bold text-sm flex items-center gap-3 transition">
+                        <i class="fa-solid fa-chart-pie w-5 text-center"></i>
+                        <span>نظرة عامة والإحصائيات</span>
+                    </button>
+                    <button onclick="switchAdminTab('products')" data-admin-tab="products" class="admin-nav-btn w-full text-right px-4 py-3 rounded-xl text-slate-300 hover:bg-brand-surface font-semibold text-sm flex items-center gap-3 transition">
+                        <i class="fa-solid fa-tags w-5 text-center text-emerald-400"></i>
+                        <span>إدارة البطاقات والأسعار</span>
+                    </button>
+                    <button onclick="switchAdminTab('vault')" data-admin-tab="vault" class="admin-nav-btn w-full text-right px-4 py-3 rounded-xl text-slate-300 hover:bg-brand-surface font-semibold text-sm flex items-center justify-between transition">
+                        <span class="flex items-center gap-3">
+                            <i class="fa-solid fa-vault w-5 text-center text-indigo-400"></i>
+                            <span>مخزون الأكواد الرقمية</span>
+                        </span>
+                        <span id="sidebar-low-stock-badge" class="hidden bg-rose-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">!</span>
+                    </button>
+                    <button onclick="switchAdminTab('orders')" data-admin-tab="orders" class="admin-nav-btn w-full text-right px-4 py-3 rounded-xl text-slate-300 hover:bg-brand-surface font-semibold text-sm flex items-center gap-3 transition">
+                        <i class="fa-solid fa-list-check w-5 text-center text-sky-400"></i>
+                        <span>إدارة الطلبات والعمليات</span>
+                    </button>
+                    <button onclick="switchAdminTab('staff')" data-admin-tab="staff" class="admin-nav-btn w-full text-right px-4 py-3 rounded-xl text-slate-300 hover:bg-brand-surface font-semibold text-sm flex items-center gap-3 transition">
+                        <i class="fa-solid fa-users-gear w-5 text-center text-amber-400"></i>
+                        <span>المشرفون والصلاحيات</span>
+                    </button>
+                </div>
+
+                <div class="bg-brand-surface/70 border border-slate-800 rounded-xl p-3.5 text-xs space-y-1.5">
+                    <div class="flex items-center justify-between text-slate-400">
+                        <span>حالة الربط البرمجي API</span>
+                        <span class="text-emerald-400 font-bold flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-emerald-400"></span> متصل</span>
+                    </div>
+                    <p class="text-[11px] text-slate-500">جميع التعديلات تنعكس فوراً على واجهة المتجر.</p>
+                </div>
+            </aside>
+
+            <!-- منطقة المحتوى القابلة للتمرير -->
+            <div class="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6">
+
+                <!-- 1. قسم نظرة عامة والإحصائيات (Overview & Analytics) -->
+                <div id="admin-tab-overview" class="admin-tab-panel space-y-6">
+                    <!-- بطاقات المؤشرات الرئيسية KPIs -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-4">
+                        <div class="bg-brand-card border border-slate-800 rounded-2xl p-4">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-xs text-slate-400">إجمالي المبيعات</span>
+                                <span class="w-8 h-8 rounded-lg bg-emerald-500/15 text-emerald-400 flex items-center justify-center"><i class="fa-solid fa-sack-dollar"></i></span>
+                            </div>
+                            <p id="kpi-total-sales" class="text-xl font-extrabold text-white">0 د.ع</p>
+                            <span class="text-[11px] text-emerald-400">+18.5% مقارنة بالأمس</span>
+                        </div>
+
+                        <div class="bg-brand-card border border-slate-800 rounded-2xl p-4">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-xs text-slate-400">صافي الأرباح</span>
+                                <span class="w-8 h-8 rounded-lg bg-indigo-500/15 text-indigo-400 flex items-center justify-center"><i class="fa-solid fa-chart-line"></i></span>
+                            </div>
+                            <p id="kpi-net-profit" class="text-xl font-extrabold text-indigo-400">0 د.ع</p>
+                            <span class="text-[11px] text-slate-400">بعد خصم تكلفة الجملة</span>
+                        </div>
+
+                        <div class="bg-brand-card border border-slate-800 rounded-2xl p-4">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-xs text-slate-400">الطلبات المكتملة</span>
+                                <span class="w-8 h-8 rounded-lg bg-sky-500/15 text-sky-400 flex items-center justify-center"><i class="fa-solid fa-bag-shopping"></i></span>
+                            </div>
+                            <p id="kpi-completed-orders" class="text-xl font-extrabold text-white">0</p>
+                            <span class="text-[11px] text-sky-400">تسليم فوري 100%</span>
+                        </div>
+
+                        <div class="bg-brand-card border border-slate-800 rounded-2xl p-4">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-xs text-slate-400">الأكواد بالمخزون</span>
+                                <span class="w-8 h-8 rounded-lg bg-amber-500/15 text-amber-400 flex items-center justify-center"><i class="fa-solid fa-key"></i></span>
+                            </div>
+                            <p id="kpi-available-codes" class="text-xl font-extrabold text-amber-400">0 كود</p>
+                            <span id="kpi-low-stock-hint" class="text-[11px] text-slate-400">جاهزة للبيع التلقائي</span>
+                        </div>
+
+                        <div class="bg-brand-card border border-slate-800 rounded-2xl p-4">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-xs text-slate-400">المستخدمون المسجلون</span>
+                                <span class="w-8 h-8 rounded-lg bg-fuchsia-500/15 text-fuchsia-400 flex items-center justify-center"><i class="fa-solid fa-users"></i></span>
+                            </div>
+                            <p id="kpi-users-count" class="text-xl font-extrabold text-white">1,428</p>
+                            <span class="text-[11px] text-fuchsia-400">عملاء موثقون (+964)</span>
+                        </div>
+                    </div>
+
+                    <!-- الرسم البياني التفاعلي للمبيعات حسب بوابات الدفع + آخر العمليات -->
+                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                        <!-- مخطط المبيعات حسب بوابة الدفع العراقية -->
+                        <div class="lg:col-span-7 bg-brand-card border border-slate-800 rounded-2xl p-5 flex flex-col justify-between">
+                            <div class="flex items-center justify-between mb-4">
+                                <div>
+                                    <h3 class="font-bold text-base text-white">توزيع المبيعات حسب بوابات الدفع العراقية</h3>
+                                    <p class="text-xs text-slate-400">إحصائيات مباشرة محدثة مع كل عملية شراء</p>
+                                </div>
+                                <span class="text-xs bg-brand-surface border border-slate-700 px-3 py-1 rounded-lg text-emerald-400 font-bold">مباشر</span>
+                            </div>
+
+                            <div id="payment-chart-container" class="space-y-4 my-2">
+                                <!-- يتم توليد الأشرطة البيانية ديناميكياً -->
+                            </div>
+                        </div>
+
+                        <!-- أحدث العمليات الحية -->
+                        <div class="lg:col-span-5 bg-brand-card border border-slate-800 rounded-2xl p-5">
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="font-bold text-base text-white">أحدث العمليات الحية</h3>
+                                <button onclick="switchAdminTab('orders')" class="text-xs text-amber-400 hover:underline">عرض الكل</button>
+                            </div>
+                            <div id="admin-recent-feed" class="space-y-3">
+                                <!-- يتم تعبئتها عبر JS -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. قسم إدارة البطاقات والأسعار (Cards & Pricing Management) -->
+                <div id="admin-tab-products" class="admin-tab-panel hidden space-y-6">
+                    <!-- نموذج إضافة بطاقة جديدة -->
+                    <div class="bg-brand-card border border-slate-800 rounded-2xl p-5">
+                        <h3 class="font-bold text-base text-white mb-4 flex items-center gap-2">
+                            <i class="fa-solid fa-circle-plus text-emerald-400"></i>
+                            إضافة بطاقة شحن / منتج رقمي جديد للمتجر
+                        </h3>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3">
+                            <div class="lg:col-span-2">
+                                <label class="block text-[11px] text-slate-400 mb-1">اسم البطاقة (يظهر للزبون)</label>
+                                <input type="text" id="new-card-title" placeholder="مثلاً: آسيا سيل 25,000 د.ع" class="w-full bg-brand-dark border border-slate-700 focus:border-emerald-500 rounded-xl px-3.5 py-2.5 text-sm text-white outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-[11px] text-slate-400 mb-1">الشركة / المزود</label>
+                                <input type="text" id="new-card-provider" placeholder="Asiacell Iraq" class="w-full bg-brand-dark border border-slate-700 focus:border-emerald-500 rounded-xl px-3.5 py-2.5 text-sm text-white outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-[11px] text-slate-400 mb-1">التصنيف</label>
+                                <select id="new-card-category" class="w-full bg-brand-dark border border-slate-700 focus:border-emerald-500 rounded-xl px-3 py-2.5 text-sm text-white outline-none">
+                                    <option value="telecom">رصيد موبايل</option>
+                                    <option value="internet">إنترنت</option>
+                                    <option value="gaming">ألعاب</option>
+                                    <option value="shopping">بطاقات تسوق</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-[11px] text-slate-400 mb-1">سعر البيع (د.ع)</label>
+                                <input type="number" id="new-card-price" placeholder="30000" class="w-full bg-brand-dark border border-slate-700 focus:border-emerald-500 rounded-xl px-3.5 py-2.5 text-sm text-white outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-[11px] text-slate-400 mb-1">سعر التكلفة (د.ع)</label>
+                                <input type="number" id="new-card-cost" placeholder="28500" class="w-full bg-brand-dark border border-slate-700 focus:border-emerald-500 rounded-xl px-3.5 py-2.5 text-sm text-white outline-none">
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-3 items-end">
+                            <div>
+                                <label class="block text-[11px] text-slate-400 mb-1">الشارة / الوسم (اختياري)</label>
+                                <input type="text" id="new-card-badge" placeholder="مثلاً: جديد، عرض خاص" class="w-full bg-brand-dark border border-slate-700 focus:border-emerald-500 rounded-xl px-3.5 py-2.5 text-sm text-white outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-[11px] text-slate-400 mb-1">لون البطاقة</label>
+                                <select id="new-card-gradient" class="w-full bg-brand-dark border border-slate-700 focus:border-emerald-500 rounded-xl px-3 py-2.5 text-sm text-white outline-none">
+                                    <option value="from-rose-600 to-red-800">أحمر (آسيا سيل)</option>
+                                    <option value="from-fuchsia-700 to-purple-900">بنفسجي (زين العراق)</option>
+                                    <option value="from-sky-600 to-blue-800">أزرق سماوي (كورك)</option>
+                                    <option value="from-amber-500 to-orange-700">ذهبي برتقالي (ألعاب)</option>
+                                    <option value="from-emerald-600 to-teal-900">أخضر زمردي</option>
+                                    <option value="from-indigo-600 to-blue-900">نيلي (بطاقات تسوق)</option>
+                                </select>
+                            </div>
+                            <button onclick="adminAddProduct()" class="w-full py-2.5 px-4 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold text-sm transition flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20">
+                                <i class="fa-solid fa-plus"></i>
+                                إضافة البطاقة ونشرها فوراً
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- جدول إدارة البطاقات والأسعار -->
+                    <div class="bg-brand-card border border-slate-800 rounded-2xl overflow-hidden">
+                        <div class="p-4 border-b border-slate-800 flex items-center justify-between">
+                            <h3 class="font-bold text-base text-white">قائمة البطاقات والأسعار في المتجر</h3>
+                            <span class="text-xs text-slate-400">يمكنك تعديل السعر أو إيقاف البطاقة مباشرة</span>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-right text-sm">
+                                <thead class="bg-brand-surface/70 text-slate-400 text-xs">
+                                    <tr>
+                                        <th class="p-3.5">البطاقة</th>
+                                        <th class="p-3.5">التصنيف</th>
+                                        <th class="p-3.5">سعر البيع (د.ع)</th>
+                                        <th class="p-3.5">التكلفة والربح</th>
+                                        <th class="p-3.5">المخزون</th>
+                                        <th class="p-3.5">الحالة</th>
+                                        <th class="p-3.5 text-center">إجراءات</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="admin-products-tbody" class="divide-y divide-slate-800/80">
+                                    <!-- يتم تعبئتها عبر JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. قسم مخزون الأكواد الرقمية (Digital Codes Vault / Stock) -->
+                <div id="admin-tab-vault" class="admin-tab-panel hidden space-y-6">
+                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                        <!-- إضافة أكواد دفعة واحدة -->
+                        <div class="lg:col-span-5 bg-brand-card border border-slate-800 rounded-2xl p-5 space-y-4">
+                            <h3 class="font-bold text-base text-white flex items-center gap-2">
+                                <i class="fa-solid fa-file-import text-indigo-400"></i>
+                                تغذية المخزون بالأكواد الرقمية
+                            </h3>
+                            <p class="text-xs text-slate-400">عند قيام أي زبون بالشراء من المتجر، سيتم سحب كود حقيقي من هذا المخزون تلقائياً.</p>
+
+                            <div>
+                                <label class="block text-xs font-bold text-slate-300 mb-1.5">اختر البطاقة المستهدفة:</label>
+                                <select id="vault-product-select" onchange="renderVaultCodesInspector()" class="w-full bg-brand-dark border border-slate-700 focus:border-indigo-500 rounded-xl px-3.5 py-2.5 text-sm text-white outline-none">
+                                    <!-- يتم تعبئتها عبر JS -->
+                                </select>
+                            </div>
+
+                            <div>
+                                <div class="flex items-center justify-between mb-1.5">
+                                    <label class="text-xs font-bold text-slate-300">أدخل الأكواد (كود واحد في كل سطر):</label>
+                                    <button type="button" onclick="generateSampleCodesForTextarea()" class="text-[11px] bg-indigo-500/20 hover:bg-indigo-500/30 text-indigo-300 font-bold px-2.5 py-1 rounded-lg transition">
+                                        + توليد 5 أكواد عشوائية للاختبار
+                                    </button>
+                                </div>
+                                <textarea id="bulk-codes-textarea" rows="5" dir="ltr" placeholder="4829-1049-8832-1190&#10;9102-4481-7720-3319"
+                                    class="w-full bg-brand-dark border border-slate-700 focus:border-indigo-500 rounded-xl p-3 text-sm font-mono text-emerald-400 placeholder-slate-600 outline-none"></textarea>
+                            </div>
+
+                            <button onclick="adminImportBulkCodes()" class="w-full py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-extrabold text-sm transition flex items-center justify-center gap-2 shadow-lg shadow-indigo-500/20">
+                                <i class="fa-solid fa-vault"></i>
+                                حفظ الأكواد في المخزون
+                            </button>
+                        </div>
+
+                        <!-- نظرة على المخزون وفحص الأكواد -->
+                        <div class="lg:col-span-7 space-y-4">
+                            <!-- ملخص المخزون لكل بطاقة -->
+                            <div class="bg-brand-card border border-slate-800 rounded-2xl p-5">
+                                <h3 class="font-bold text-base text-white mb-3">حالة المخزون لجميع البطاقات</h3>
+                                <div id="vault-stock-summary-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                    <!-- يتم تعبئتها عبر JS -->
+                                </div>
+                            </div>
+
+                            <!-- فحص الأكواد المتاحة والمباعة للبطاقة المختارة -->
+                            <div class="bg-brand-card border border-slate-800 rounded-2xl p-5">
+                                <div class="flex items-center justify-between mb-3">
+                                    <h4 id="inspector-title" class="font-bold text-sm text-white">الأكواد المخزنة للبطاقة المختارة</h4>
+                                    <span id="inspector-counts" class="text-xs text-slate-400"></span>
+                                </div>
+                                <div id="vault-codes-list" class="max-h-56 overflow-y-auto space-y-2 pr-1">
+                                    <!-- يتم تعبئتها عبر JS -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 4. قسم إدارة الطلبات والعمليات (Orders & Transactions) -->
+                <div id="admin-tab-orders" class="admin-tab-panel hidden space-y-4">
+                    <div class="bg-brand-card border border-slate-800 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div class="relative flex-1">
+                            <i class="fa-solid fa-magnifying-glass absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                            <input type="text" id="admin-order-search" oninput="renderAdminOrders()" placeholder="بحث برقم الطلب، اسم الزبون، رقم الهاتف، أو الكود..."
+                                class="w-full bg-brand-dark border border-slate-700 focus:border-amber-500 rounded-xl py-2.5 pr-9 pl-4 text-xs sm:text-sm text-white outline-none">
+                        </div>
+                        <select id="admin-order-status-filter" onchange="renderAdminOrders()" class="bg-brand-dark border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-white outline-none">
+                            <option value="all">جميع الحالات</option>
+                            <option value="completed">مكتمل</option>
+                            <option value="refunded">مسترجع (ملغي)</option>
+                        </select>
+                    </div>
+
+                    <div class="bg-brand-card border border-slate-800 rounded-2xl overflow-hidden">
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-right text-sm">
+                                <thead class="bg-brand-surface/70 text-slate-400 text-xs">
+                                    <tr>
+                                        <th class="p-3.5">رقم الطلب</th>
+                                        <th class="p-3.5">الزبون والهاتف</th>
+                                        <th class="p-3.5">البطاقة</th>
+                                        <th class="p-3.5">المبلغ والدفع</th>
+                                        <th class="p-3.5">الكود المسلم</th>
+                                        <th class="p-3.5">الحالة</th>
+                                        <th class="p-3.5 text-center">إجراء</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="admin-orders-tbody" class="divide-y divide-slate-800/80">
+                                    <!-- يتم تعبئتها عبر JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 5. قسم إدارة المشرفين والصلاحيات (Staff & Permissions) -->
+                <div id="admin-tab-staff" class="admin-tab-panel hidden space-y-6">
+                    <div class="bg-brand-card border border-slate-800 rounded-2xl p-5">
+                        <h3 class="font-bold text-base text-white mb-4 flex items-center gap-2">
+                            <i class="fa-solid fa-user-plus text-amber-400"></i>
+                            إضافة مشرف أو موظف جديد للوحة التحكم
+                        </h3>
+                        <div class="grid grid-cols-1 sm:grid-cols-4 gap-3 items-end">
+                            <div>
+                                <label class="block text-[11px] text-slate-400 mb-1">اسم المشرف</label>
+                                <input type="text" id="new-staff-name" placeholder="مثلاً: سارة العاني" class="w-full bg-brand-dark border border-slate-700 focus:border-amber-500 rounded-xl px-3.5 py-2.5 text-sm text-white outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-[11px] text-slate-400 mb-1">الدور الوظيفي</label>
+                                <select id="new-staff-role" class="w-full bg-brand-dark border border-slate-700 focus:border-amber-500 rounded-xl px-3 py-2.5 text-sm text-white outline-none">
+                                    <option value="مشرف مبيعات">مشرف مبيعات</option>
+                                    <option value="محاسب">محاسب مالي</option>
+                                    <option value="دعم فني">دعم فني</option>
+                                    <option value="مدير عام">مدير عام</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-[11px] text-slate-400 mb-1">رمز الدخول (PIN)</label>
+                                <input type="text" id="new-staff-pin" maxlength="6" placeholder="1122" class="w-full bg-brand-dark border border-slate-700 focus:border-amber-500 rounded-xl px-3.5 py-2.5 text-sm font-mono text-white outline-none">
+                            </div>
+                            <button onclick="adminAddStaff()" class="w-full py-2.5 px-4 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-sm transition flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-plus"></i>
+                                إضافة المشرف
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="admin-staff-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- يتم تعبئتها عبر JS -->
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- 1. نافذة إتمام الشراء (Interactive Checkout Modal) -->
+    <!-- ===================================================================== -->
+    <div id="checkout-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-black/75 backdrop-blur-sm">
+        <div class="bg-brand-card border border-slate-700 rounded-2xl w-full max-w-md overflow-hidden shadow-2xl transform transition-all">
+            <!-- رأس النافذة -->
+            <div class="px-5 py-4 border-b border-slate-800 flex items-center justify-between bg-brand-surface/50">
+                <h3 class="font-bold text-base text-white flex items-center gap-2">
+                    <i class="fa-solid fa-cart-shopping text-emerald-400"></i>
+                    إتمام عملية الشراء
+                </h3>
+                <button onclick="closeModal('checkout-modal')" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center transition">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- تفاصيل المنتج -->
+            <div class="p-5 space-y-5">
+                <div class="bg-brand-surface rounded-xl p-4 border border-slate-700/70 flex items-center gap-4">
+                    <div id="checkout-icon-box" class="w-14 h-14 rounded-xl flex items-center justify-center text-white text-2xl shrink-0 shadow-lg">
+                        <!-- أيقونة المنتج -->
+                    </div>
+                    <div class="flex-1">
+                        <span id="checkout-provider" class="text-[11px] font-semibold text-slate-400 block">شركة الاتصالات</span>
+                        <h4 id="checkout-title" class="font-bold text-base text-white">اسم البطاقة</h4>
+                        <div class="mt-1 flex items-center justify-between">
+                            <span class="text-xs text-slate-400">المبلغ المطلوب:</span>
+                            <span id="checkout-price" class="font-extrabold text-lg text-emerald-400">6,000 د.ع</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- اختيار وسيلة الدفع -->
+                <div>
+                    <div class="flex items-center justify-between mb-2.5">
+                        <label class="text-xs font-bold text-slate-300">اختر طريقة الدفع المناسبة لك:</label>
+                        <span id="checkout-user-tag" class="text-[11px] text-emerald-400 font-semibold"></span>
+                    </div>
+                    <div class="space-y-2.5" id="payment-methods-list">
+                        <!-- 1. المحفظة الداخلية -->
+                        <label class="payment-option flex items-center justify-between p-3 rounded-xl border border-emerald-500 bg-emerald-500/10 cursor-pointer transition">
+                            <div class="flex items-center gap-3">
+                                <input type="radio" name="payment_method" value="wallet" checked class="accent-emerald-500 w-4 h-4">
+                                <div class="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center">
+                                    <i class="fa-solid fa-wallet"></i>
+                                </div>
+                                <div>
+                                    <span class="block text-sm font-bold text-white">المحفظة الداخلية</span>
+                                    <span id="modal-wallet-hint" class="text-[11px] text-emerald-400">الرصيد المتاح: 50,000 د.ع</span>
+                                </div>
+                            </div>
+                            <span class="text-[10px] bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded font-bold">فوري</span>
+                        </label>
+
+                        <!-- 2. زين كاش -->
+                        <label class="payment-option flex items-center justify-between p-3 rounded-xl border border-slate-700/80 bg-brand-surface/60 hover:border-slate-600 cursor-pointer transition">
+                            <div class="flex items-center gap-3">
+                                <input type="radio" name="payment_method" value="zaincash" class="accent-emerald-500 w-4 h-4">
+                                <div class="w-8 h-8 rounded-lg bg-pink-500/20 text-pink-400 flex items-center justify-center">
+                                    <i class="fa-solid fa-mobile-screen"></i>
+                                </div>
+                                <div>
+                                    <span class="block text-sm font-bold text-white">زين كاش (ZainCash)</span>
+                                    <span class="text-[11px] text-slate-400">الدفع عبر محفظة زين كاش العراق</span>
+                                </div>
+                            </div>
+                        </label>
+
+                        <!-- 3. ماستركارد الرافدين / كي كارد -->
+                        <label class="payment-option flex items-center justify-between p-3 rounded-xl border border-slate-700/80 bg-brand-surface/60 hover:border-slate-600 cursor-pointer transition">
+                            <div class="flex items-center gap-3">
+                                <input type="radio" name="payment_method" value="qicard" class="accent-emerald-500 w-4 h-4">
+                                <div class="w-8 h-8 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center">
+                                    <i class="fa-solid fa-credit-card"></i>
+                                </div>
+                                <div>
+                                    <span class="block text-sm font-bold text-white">ماستركارد الرافدين / كي كارد</span>
+                                    <span class="text-[11px] text-slate-400">QiCard / MasterCard / Visa</span>
+                                </div>
+                            </div>
+                        </label>
+
+                        <!-- 4. آسيا حوالة -->
+                        <label class="payment-option flex items-center justify-between p-3 rounded-xl border border-slate-700/80 bg-brand-surface/60 hover:border-slate-600 cursor-pointer transition">
+                            <div class="flex items-center gap-3">
+                                <input type="radio" name="payment_method" value="asiahawala" class="accent-emerald-500 w-4 h-4">
+                                <div class="w-8 h-8 rounded-lg bg-rose-500/20 text-rose-400 flex items-center justify-center">
+                                    <i class="fa-solid fa-money-bill-transfer"></i>
+                                </div>
+                                <div>
+                                    <span class="block text-sm font-bold text-white">آسيا حوالة (AsiaHawala)</span>
+                                    <span class="text-[11px] text-slate-400">الدفع المباشر عبر رقم آسيا سيل</span>
+                                </div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- زر تأكيد الدفع -->
+                <button id="confirm-pay-btn" onclick="processPayment()" class="w-full py-3.5 rounded-xl bg-gradient-to-l from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-slate-950 font-extrabold text-sm shadow-lg shadow-emerald-500/25 transition active:scale-[0.98] flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-lock"></i>
+                    <span>تأكيد الدفع واستلام الكود فوراً</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- 2. نافذة نجاح الشراء وتسليم الكود الفوري (Instant Code Delivery Modal) -->
+    <!-- ===================================================================== -->
+    <div id="success-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+        <div class="bg-brand-card border border-emerald-500/40 rounded-2xl w-full max-w-md overflow-hidden shadow-2xl glow-effect">
+            <div class="p-6 text-center">
+                <!-- أيقونة النجاح -->
+                <div class="w-16 h-16 rounded-full bg-emerald-500/20 border-2 border-emerald-500 text-emerald-400 flex items-center justify-center text-3xl mx-auto mb-4">
+                    <i class="fa-solid fa-check"></i>
+                </div>
+                <h3 class="text-xl font-extrabold text-white mb-1">تمت عملية الشراء بنجاح!</h3>
+                <p id="success-product-name" class="text-sm text-slate-300 mb-5">بطاقة آسيا سيل 10,000 د.ع</p>
+
+                <!-- صندوق عرض الكود -->
+                <div class="bg-brand-dark border-2 border-dashed border-emerald-500/60 rounded-2xl p-4 mb-5 relative">
+                    <span class="block text-[11px] text-slate-400 mb-1.5">كود الشحن / القسيمة الرقمية الخاص بك:</span>
+                    <div id="generated-code-display" dir="ltr" class="text-xl sm:text-2xl font-mono font-extrabold tracking-wider text-emerald-400 select-all py-1">
+                        4829-1049-8832-1190
+                    </div>
+                    <p id="how-to-use-hint" class="text-[11px] text-slate-400 mt-2">
+                        للشحن السريع: اطلب <span dir="ltr" class="text-white font-mono">*133*الكود#</span> ثم اتصال
+                    </p>
+                </div>
+
+                <!-- أزرار النسخ والإغلاق -->
+                <div class="flex flex-col sm:flex-row gap-2.5">
+                    <button onclick="copyGeneratedCode()" class="flex-1 py-3 px-4 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold text-sm transition flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20">
+                        <i class="fa-regular fa-copy"></i>
+                        نسخ الكود
+                    </button>
+                    <button onclick="closeModal('success-modal')" class="py-3 px-5 rounded-xl bg-brand-surface hover:bg-slate-700 text-white font-semibold text-sm border border-slate-700 transition">
+                        إغلاق
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- 3. نافذة شحن المحفظة (Wallet Top-up Modal) -->
+    <!-- ===================================================================== -->
+    <div id="topup-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-black/75 backdrop-blur-sm">
+        <div class="bg-brand-card border border-slate-700 rounded-2xl w-full max-w-md overflow-hidden shadow-2xl">
+            <div class="px-5 py-4 border-b border-slate-800 flex items-center justify-between bg-brand-surface/50">
+                <h3 class="font-bold text-base text-white flex items-center gap-2">
+                    <i class="fa-solid fa-wallet text-emerald-400"></i>
+                    شحن رصيد المحفظة
+                </h3>
+                <button onclick="closeModal('topup-modal')" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center transition">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div class="p-5 space-y-5">
+                <!-- اختيار المبلغ -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-300 mb-2.5">اختر مبلغ الشحن (بالدينار العراقي):</label>
+                    <div class="grid grid-cols-3 gap-2.5" id="topup-amounts">
+                        <button type="button" onclick="selectTopupAmount(10000, this)" class="topup-amt-btn py-3 rounded-xl border border-slate-700 bg-brand-surface hover:border-emerald-500 font-bold text-sm text-white transition">
+                            10,000 د.ع
+                        </button>
+                        <button type="button" onclick="selectTopupAmount(25000, this)" class="topup-amt-btn py-3 rounded-xl border-2 border-emerald-500 bg-emerald-500/15 font-bold text-sm text-emerald-400 transition">
+                            25,000 د.ع
+                        </button>
+                        <button type="button" onclick="selectTopupAmount(50000, this)" class="topup-amt-btn py-3 rounded-xl border border-slate-700 bg-brand-surface hover:border-emerald-500 font-bold text-sm text-white transition">
+                            50,000 د.ع
+                        </button>
+                    </div>
+                </div>
+
+                <!-- بوابة شحن المحفظة -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-300 mb-2.5">اختر بوابة الدفع:</label>
+                    <div class="grid grid-cols-2 gap-2.5">
+                        <label class="flex items-center gap-2.5 p-3 rounded-xl border border-slate-700 bg-brand-surface cursor-pointer">
+                            <input type="radio" name="topup_gateway" value="ZainCash" checked class="accent-emerald-500">
+                            <span class="text-xs font-bold text-pink-400">زين كاش ZainCash</span>
+                        </label>
+                        <label class="flex items-center gap-2.5 p-3 rounded-xl border border-slate-700 bg-brand-surface cursor-pointer">
+                            <input type="radio" name="topup_gateway" value="QiCard" class="accent-emerald-500">
+                            <span class="text-xs font-bold text-amber-400">كي كارد / ماستر</span>
+                        </label>
+                    </div>
+                </div>
+
+                <button onclick="confirmTopup()" class="w-full py-3.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold text-sm shadow-lg shadow-emerald-500/20 transition flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-circle-plus"></i>
+                    إضافة الرصيد للمحفظة الآن
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- 4. نافذة سجل الطلبات والأكواد السابقة (My Orders Modal) -->
+    <!-- ===================================================================== -->
+    <div id="orders-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-black/75 backdrop-blur-sm">
+        <div class="bg-brand-card border border-slate-700 rounded-2xl w-full max-w-lg max-h-[85vh] flex flex-col overflow-hidden shadow-2xl">
+            <div class="px-5 py-4 border-b border-slate-800 flex items-center justify-between bg-brand-surface/50 shrink-0">
+                <h3 class="font-bold text-base text-white flex items-center gap-2">
+                    <i class="fa-solid fa-receipt text-indigo-400"></i>
+                    طلباتي وسجل الأكواد المشتراة
+                </h3>
+                <button onclick="closeModal('orders-modal')" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center transition">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- قائمة الطلبات -->
+            <div id="orders-list-container" class="p-5 overflow-y-auto space-y-3 flex-1">
+                <!-- يتم تعبئتها عبر JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- البرمجة التفاعلية للتطبيق (JavaScript Logic) -->
+    <!-- ===================================================================== -->
+    <script>
+        // 1. بيانات المنتجات العراقية الواقعية (تتضمن السعر والتكلفة وحالة التوفر)
+        const productsData = [
+            {
+                id: 'asia-5',
+                title: 'آسيا سيل 5,000 د.ع',
+                provider: 'Asiacell Iraq',
+                category: 'telecom',
+                price: 6000,
+                cost: 5650,
+                active: true,
+                badge: 'الأكثر مبيعاً',
+                gradient: 'from-rose-600 to-red-800',
+                icon: 'fa-tower-cell',
+                hint: 'للشحن اطلب *133*الكود# ثم اتصال'
+            },
+            {
+                id: 'asia-10',
+                title: 'آسيا سيل 10,000 د.ع',
+                provider: 'Asiacell Iraq',
+                category: 'telecom',
+                price: 12000,
+                cost: 11300,
+                active: true,
+                badge: 'تسليم فوري',
+                gradient: 'from-rose-600 to-red-800',
+                icon: 'fa-tower-cell',
+                hint: 'للشحن اطلب *133*الكود# ثم اتصال'
+            },
+            {
+                id: 'zain-5',
+                title: 'زين العراق 5,000 د.ع',
+                provider: 'Zain Iraq',
+                category: 'telecom',
+                price: 6000,
+                cost: 5650,
+                active: true,
+                badge: null,
+                gradient: 'from-fuchsia-700 to-purple-900',
+                icon: 'fa-signal',
+                hint: 'للشحن اطلب *101*الكود# ثم اتصال'
+            },
+            {
+                id: 'zain-10',
+                title: 'زين العراق 10,000 د.ع',
+                provider: 'Zain Iraq',
+                category: 'telecom',
+                price: 12000,
+                cost: 11300,
+                active: true,
+                badge: 'متوفر',
+                gradient: 'from-fuchsia-700 to-purple-900',
+                icon: 'fa-signal',
+                hint: 'للشحن اطلب *101*الكود# ثم اتصال'
+            },
+            {
+                id: 'korek-5',
+                title: 'كورك تيليكوم 5,000 د.ع',
+                provider: 'Korek Telecom',
+                category: 'telecom',
+                price: 6000,
+                cost: 5700,
+                active: true,
+                badge: null,
+                gradient: 'from-sky-600 to-blue-800',
+                icon: 'fa-wifi',
+                hint: 'للشحن اطلب *221*الكود# ثم اتصال'
+            },
+            {
+                id: 'fastlink-15',
+                title: 'فاست لينك 15,000 د.ع (إنترنت)',
+                provider: 'Fastlink 4G LTE',
+                category: 'internet',
+                price: 15000,
+                cost: 14100,
+                active: true,
+                badge: 'إنترنت سريع',
+                gradient: 'from-orange-500 to-red-700',
+                icon: 'fa-globe',
+                hint: 'أدخل الكود في تطبيق Fastlink أو عبر البوابة الإلكترونية'
+            },
+            {
+                id: 'pubg-60',
+                title: 'شدات ببجي 60 UC',
+                provider: 'PUBG Mobile Global',
+                category: 'gaming',
+                price: 1500,
+                cost: 1250,
+                active: true,
+                badge: 'عرض خاص',
+                gradient: 'from-amber-500 to-orange-700',
+                icon: 'fa-crosshairs',
+                hint: 'يُستبدل عبر موقع Midasbuy الرسمي باستخدام ID اللاعب'
+            },
+            {
+                id: 'pubg-325',
+                title: 'شدات ببجي 325 UC',
+                provider: 'PUBG Mobile Global',
+                category: 'gaming',
+                price: 7500,
+                cost: 6600,
+                active: true,
+                badge: 'شائع للاعبين',
+                gradient: 'from-amber-500 to-orange-700',
+                icon: 'fa-crosshairs',
+                hint: 'يُستبدل عبر موقع Midasbuy الرسمي باستخدام ID اللاعب'
+            },
+            {
+                id: 'itunes-10',
+                title: 'بطاقة آيتونز 10$ أمريكي',
+                provider: 'Apple Store US',
+                category: 'shopping',
+                price: 15000,
+                cost: 13800,
+                active: true,
+                badge: 'حساب أمريكي',
+                gradient: 'from-indigo-600 to-blue-900',
+                icon: 'fa-brands fa-apple',
+                hint: 'افتح App Store واضغط على Redeem Gift Card'
+            },
+            {
+                id: 'psn-20',
+                title: 'بطاقة بلايستيشن 20$ أمريكي',
+                provider: 'PlayStation Network US',
+                category: 'gaming',
+                price: 30000,
+                cost: 27800,
+                active: true,
+                badge: 'PS4 / PS5',
+                gradient: 'from-blue-600 to-indigo-950',
+                icon: 'fa-brands fa-playstation',
+                hint: 'ادخل إلى متجر PS Store واختر Redeem Codes'
+            }
+        ];
+
+        // مخزون الأكواد الرقمية الحقيقي لكل منتج (Digital Codes Vault)
+        let digitalCodesVault = {
+            'asia-5': [
+                { code: '8492-1930-5541-9021', status: 'available', addedAt: '2026-11-07' },
+                { code: '3301-7748-1290-6642', status: 'available', addedAt: '2026-11-07' },
+                { code: '9918-2045-6183-4410', status: 'available', addedAt: '2026-11-07' },
+                { code: '5120-8834-1902-7731', status: 'available', addedAt: '2026-11-07' }
+            ],
+            'asia-10': [
+                { code: '6721-9043-1182-5509', status: 'available', addedAt: '2026-11-07' },
+                { code: '1049-8821-3340-7712', status: 'available', addedAt: '2026-11-07' }
+            ],
+            'zain-5': [
+                { code: '4490-2218-9930-1124', status: 'available', addedAt: '2026-11-07' },
+                { code: '7781-3302-6651-8890', status: 'available', addedAt: '2026-11-07' },
+                { code: '2290-5514-8823-9012', status: 'available', addedAt: '2026-11-07' }
+            ],
+            'zain-10': [
+                { code: '9012-4431-7782-1109', status: 'available', addedAt: '2026-11-07' },
+                { code: '3389-1120-5543-6678', status: 'available', addedAt: '2026-11-07' }
+            ],
+            'korek-5': [
+                { code: '5541-9902-3318-7740', status: 'available', addedAt: '2026-11-07' },
+                { code: '1182-6630-9941-2258', status: 'available', addedAt: '2026-11-07' }
+            ],
+            'fastlink-15': [
+                { code: 'FLNK-8821-9043-1120', status: 'available', addedAt: '2026-11-07' },
+                { code: 'FLNK-3309-7712-5584', status: 'available', addedAt: '2026-11-07' }
+            ],
+            'pubg-60': [
+                { code: 'PUBG-60UC-9918-4420', status: 'available', addedAt: '2026-11-07' },
+                { code: 'PUBG-60UC-3310-8871', status: 'available', addedAt: '2026-11-07' },
+                { code: 'PUBG-60UC-7742-1190', status: 'available', addedAt: '2026-11-07' }
+            ],
+            'pubg-325': [
+                { code: 'PUBG-325U-5521-9083', status: 'available', addedAt: '2026-11-07' }
+            ],
+            'itunes-10': [
+                { code: 'X9K2-M7P4-L8Q1-W5R9', status: 'available', addedAt: '2026-11-07' },
+                { code: 'B4N8-V2C6-Z1X9-H3J7', status: 'available', addedAt: '2026-11-07' }
+            ],
+            'psn-20': [
+                { code: 'PSN2-8841-9920-3314', status: 'available', addedAt: '2026-11-07' }
+            ]
+        };
+
+        // قائمة المشرفين والمسؤولين وصلاحياتهم
+        let adminStaffList = [
+            {
+                id: 'adm-1',
+                name: 'أ. أحمد البياتي',
+                role: 'مدير عام',
+                pin: '2026',
+                permissions: { stock: true, pricing: true, refund: true, staff: true }
+            },
+            {
+                id: 'adm-2',
+                name: 'مريم الدليمي',
+                role: 'مشرف مبيعات',
+                pin: '1111',
+                permissions: { stock: true, pricing: false, refund: true, staff: false }
+            },
+            {
+                id: 'adm-3',
+                name: 'حسين البصري',
+                role: 'محاسب',
+                pin: '2222',
+                permissions: { stock: false, pricing: true, refund: false, staff: false }
+            }
+        ];
+        let currentAdmin = null;
+        let currentAdminTab = 'overview';
+
+        // 2. حالة التطبيق والمستخدم (App & Auth State)
+        let currentUser = null; // null = زائر غير مسجل، أو كائن { name, phone, formattedPhone, governorate }
+        let pendingActionCallback = null; // لتنفيذ الشراء أو الشحن تلقائياً بعد إتمام تسجيل الدخول
+        let otpChannel = 'whatsapp';
+        let otpCountdownInterval = null;
+        let tempPhoneRaw = '';
+
+        let walletBalance = 0; // يصبح 50,000 د.ع عند تسجيل الدخول
+        let currentCategory = 'all';
+        let selectedProduct = null;
+        let selectedTopupAmount = 25000;
+        let lastGeneratedCode = '';
+
+        // سجل طلبات شامل (للزبون وللوحة تحكم الإدارة)
+        let ordersHistory = [
+            {
+                orderId: 'IQ-90412',
+                productId: 'asia-5',
+                customerName: 'علي الكركوكي',
+                customerPhone: '+964 770 123 4567',
+                title: 'آسيا سيل 5,000 د.ع',
+                price: 6000,
+                cost: 5650,
+                code: '7391-5028-4419-8204',
+                method: 'المحفظة الداخلية',
+                status: 'completed',
+                date: 'اليوم، 10:15 ص'
+            },
+            {
+                orderId: 'IQ-90411',
+                productId: 'pubg-325',
+                customerName: 'مصطفى البغدادي',
+                customerPhone: '+964 781 442 9910',
+                title: 'شدات ببجي 325 UC',
+                price: 7500,
+                cost: 6600,
+                code: 'PUBG-325U-8812-4401',
+                method: 'زين كاش (ZainCash)',
+                status: 'completed',
+                date: 'اليوم، 09:42 ص'
+            },
+            {
+                orderId: 'IQ-90409',
+                productId: 'itunes-10',
+                customerName: 'نور الهدى - أربيل',
+                customerPhone: '+964 750 882 1134',
+                title: 'بطاقة آيتونز 10$ أمريكي',
+                price: 15000,
+                cost: 13800,
+                code: 'K8M2-P9L4-Q1W7-R5X3',
+                method: 'كي كارد / ماستركارد الرافدين',
+                status: 'completed',
+                date: 'أمس، 08:20 م'
+            }
+        ];
+
+        // =====================================================================
+        // نظام المصادقة وتسجيل الدخول العراقي (Iraqi Auth & OTP System)
+        // =====================================================================
+
+        function updateAuthUI() {
+            const loginBtn = document.getElementById('header-login-btn');
+            const profileBtn = document.getElementById('header-profile-btn');
+            const ordersBadge = document.getElementById('orders-badge');
+            const mobileAccountLabel = document.getElementById('mobile-nav-account-label');
+
+            if (currentUser) {
+                loginBtn.classList.add('hidden');
+                profileBtn.classList.remove('hidden');
+                profileBtn.classList.add('flex');
+
+                document.getElementById('header-user-name').textContent = currentUser.name;
+                document.getElementById('header-user-gov').textContent = currentUser.governorate;
+                document.getElementById('header-avatar').textContent = currentUser.name.trim().charAt(0);
+                mobileAccountLabel.textContent = 'حسابي';
+
+                ordersBadge.classList.remove('hidden');
+                updateOrdersBadge();
+            } else {
+                loginBtn.classList.remove('hidden');
+                profileBtn.classList.add('hidden');
+                profileBtn.classList.remove('flex');
+                mobileAccountLabel.textContent = 'دخول';
+                ordersBadge.classList.add('hidden');
+                walletBalance = 0;
+            }
+            updateWalletUI();
+        }
+
+        // دالة لحماية العمليات التي تتطلب تسجيل الدخول (شراء، شحن محفظة، طلباتي)
+        function handleProtectedAction(callback) {
+            if (currentUser) {
+                callback();
+            } else {
+                pendingActionCallback = callback;
+                showToast('يرجى تسجيل الدخول برقم هاتفك العراقي للمتابعة', 'info');
+                openAuthModal();
+            }
+        }
+
+        function handleAccountNavClick() {
+            if (currentUser) {
+                openProfileModal();
+            } else {
+                openAuthModal();
+            }
+        }
+
+        function openAuthModal() {
+            // إعادة تعيين الخطوات إلى الخطوة الأولى
+            document.getElementById('auth-step-phone').classList.remove('hidden');
+            document.getElementById('auth-step-otp').classList.add('hidden');
+            document.getElementById('auth-step-register').classList.add('hidden');
+            document.getElementById('auth-modal-title').textContent = 'تسجيل الدخول السريع';
+            openModal('auth-modal');
+        }
+
+        function setOtpChannel(channel) {
+            otpChannel = channel;
+            const waBtn = document.getElementById('channel-whatsapp');
+            const smsBtn = document.getElementById('channel-sms');
+
+            if (channel === 'whatsapp') {
+                waBtn.className = 'py-2 rounded-lg text-xs font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 flex items-center justify-center gap-1.5 transition';
+                smsBtn.className = 'py-2 rounded-lg text-xs font-semibold text-slate-400 hover:text-white flex items-center justify-center gap-1.5 transition';
+            } else {
+                smsBtn.className = 'py-2 rounded-lg text-xs font-bold bg-indigo-500/20 text-indigo-400 border border-indigo-500/40 flex items-center justify-center gap-1.5 transition';
+                waBtn.className = 'py-2 rounded-lg text-xs font-semibold text-slate-400 hover:text-white flex items-center justify-center gap-1.5 transition';
+            }
+        }
+
+        // التحقق التلقائي من صحة رقم الهاتف العراقي والتعرف على الشركة
+        function validateIraqiPhone(rawValue) {
+            // إزالة أي مسافات أو رموز غير رقمية
+            let digits = rawValue.replace(/\D/g, '');
+            const inputEl = document.getElementById('iraqi-phone-input');
+            const carrierBadge = document.getElementById('carrier-badge');
+            const sendBtn = document.getElementById('send-otp-btn');
+            const errorMsg = document.getElementById('phone-error-msg');
+
+            // السماح بكتابة الرقم بصيغة 07xxxxxxxxx (11 رقم) أو 7xxxxxxxxx (10 أرقام)
+            if (digits.startsWith('7') && digits.length <= 10) {
+                digits = '0' + digits;
+            }
+            if (digits.length > 11) {
+                digits = digits.slice(0, 11);
+            }
+            inputEl.value = digits;
+            tempPhoneRaw = digits;
+
+            // تحديد شبكة الاتصال العراقية
+            if (digits.startsWith('077')) {
+                carrierBadge.textContent = 'آسيا سيل Asiacell';
+                carrierBadge.className = 'text-[11px] font-bold px-2 py-0.5 rounded bg-rose-500/20 text-rose-400';
+            } else if (digits.startsWith('078') || digits.startsWith('079')) {
+                carrierBadge.textContent = 'زين العراق Zain';
+                carrierBadge.className = 'text-[11px] font-bold px-2 py-0.5 rounded bg-fuchsia-500/20 text-fuchsia-400';
+            } else if (digits.startsWith('075')) {
+                carrierBadge.textContent = 'كورك Korek';
+                carrierBadge.className = 'text-[11px] font-bold px-2 py-0.5 rounded bg-sky-500/20 text-sky-400';
+            } else {
+                carrierBadge.textContent = digits.length > 0 ? 'مقدمة غير عراقية' : 'بانتظار الرقم...';
+                carrierBadge.className = 'text-[11px] font-bold px-2 py-0.5 rounded bg-slate-800 text-slate-400';
+            }
+
+            // التحقق من الصيغة الصحيحة: يبدأ بـ 077 أو 078 أو 075 أو 079 ويتكون من 11 رقماً (10 أرقام بعد الصفر)
+            const isValidIraqi = /^07[5789]\d{8}$/.test(digits);
+
+            if (isValidIraqi) {
+                sendBtn.disabled = false;
+                errorMsg.classList.add('hidden');
+            } else {
+                sendBtn.disabled = true;
+                if (digits.length >= 4 && !/^07[5789]/.test(digits)) {
+                    errorMsg.classList.remove('hidden');
+                } else {
+                    errorMsg.classList.add('hidden');
+                }
+            }
+        }
+
+        function fillDemoPhone() {
+            validateIraqiPhone('07701234567');
+        }
+
+        function formatDisplayIraqiPhone(digits) {
+            // تحويل 07701234567 إلى +964 770 123 4567
+            const withoutZero = digits.startsWith('0') ? digits.slice(1) : digits;
+            return `+964 ${withoutZero.slice(0, 3)} ${withoutZero.slice(3, 6)} ${withoutZero.slice(6)}`;
+        }
+
+        function sendOtpCode() {
+            if (!/^07[5789]\d{8}$/.test(tempPhoneRaw)) return;
+
+            const formatted = formatDisplayIraqiPhone(tempPhoneRaw);
+            document.getElementById('otp-phone-display').textContent = formatted;
+
+            const badge = document.getElementById('otp-sent-channel-badge');
+            if (otpChannel === 'whatsapp') {
+                badge.innerHTML = '<i class="fa-brands fa-whatsapp"></i> تم الإرسال عبر واتساب';
+                badge.className = 'inline-flex items-center gap-1.5 text-[11px] font-bold bg-emerald-500/15 text-emerald-400 px-3 py-1 rounded-full mb-2';
+            } else {
+                badge.innerHTML = '<i class="fa-solid fa-comment-sms"></i> تم الإرسال برسالة SMS';
+                badge.className = 'inline-flex items-center gap-1.5 text-[11px] font-bold bg-indigo-500/15 text-indigo-400 px-3 py-1 rounded-full mb-2';
+            }
+
+            // الانتقال إلى شاشة إدخال OTP
+            document.getElementById('auth-step-phone').classList.add('hidden');
+            document.getElementById('auth-step-otp').classList.remove('hidden');
+            document.getElementById('auth-modal-title').textContent = 'تأكيد رمز التحقق';
+
+            // تفريغ خانات OTP والتركيز على الأولى
+            const boxes = document.querySelectorAll('.otp-box');
+            boxes.forEach(b => b.value = '');
+            boxes[0].focus();
+
+            startOtpCountdown();
+            showToast(`تم إرسال رمز التحقق إلى ${formatted}`, 'success');
+        }
+
+        function backToPhoneStep() {
+            clearInterval(otpCountdownInterval);
+            document.getElementById('auth-step-otp').classList.add('hidden');
+            document.getElementById('auth-step-phone').classList.remove('hidden');
+            document.getElementById('auth-modal-title').textContent = 'تسجيل الدخول السريع';
+        }
+
+        function startOtpCountdown() {
+            clearInterval(otpCountdownInterval);
+            let seconds = 45;
+            const timerText = document.getElementById('resend-timer-text');
+            const resendBtn = document.getElementById('resend-otp-btn');
+            const countdownEl = document.getElementById('otp-countdown');
+
+            timerText.classList.remove('hidden');
+            resendBtn.classList.add('hidden');
+            countdownEl.textContent = '00:45';
+
+            otpCountdownInterval = setInterval(() => {
+                seconds--;
+                const secStr = seconds < 10 ? '0' + seconds : seconds;
+                countdownEl.textContent = `00:${secStr}`;
+
+                if (seconds <= 0) {
+                    clearInterval(otpCountdownInterval);
+                    timerText.classList.add('hidden');
+                    resendBtn.classList.remove('hidden');
+                }
+            }, 1000);
+        }
+
+        function resendOtp() {
+            startOtpCountdown();
+            showToast('تمت إعادة إرسال رمز التحقق بنجاح (1234)', 'success');
+        }
+
+        function autoFillOtp() {
+            const boxes = document.querySelectorAll('.otp-box');
+            const demoCode = ['1', '2', '3', '4'];
+            boxes.forEach((box, idx) => {
+                box.value = demoCode[idx];
+            });
+            boxes[3].focus();
+        }
+
+        // إعداد التنقل التلقائي بين خانات OTP الأربعة
+        function setupOtpInputs() {
+            const boxes = document.querySelectorAll('.otp-box');
+            boxes.forEach((box, index) => {
+                box.addEventListener('input', (e) => {
+                    e.target.value = e.target.value.replace(/\D/g, '');
+                    if (e.target.value && index < boxes.length - 1) {
+                        boxes[index + 1].focus();
+                    }
+                    // التحقق التلقائي عند اكتمال الخانات الأربع
+                    const code = Array.from(boxes).map(b => b.value).join('');
+                    if (code.length === 4) {
+                        verifyOtpCode();
+                    }
+                });
+
+                box.addEventListener('keydown', (e) => {
+                    if (e.key === 'Backspace' && !e.target.value && index > 0) {
+                        boxes[index - 1].focus();
+                    }
+                });
+
+                box.addEventListener('paste', (e) => {
+                    e.preventDefault();
+                    const pasted = (e.clipboardData || window.clipboardData).getData('text').replace(/\D/g, '').slice(0, 4);
+                    pasted.split('').forEach((char, i) => {
+                        if (boxes[i]) boxes[i].value = char;
+                    });
+                    if (pasted.length === 4) verifyOtpCode();
+                });
+            });
+        }
+
+        function verifyOtpCode() {
+            const boxes = document.querySelectorAll('.otp-box');
+            const enteredCode = Array.from(boxes).map(b => b.value).join('');
+
+            if (enteredCode.length < 4) {
+                showToast('يرجى إدخال رمز التحقق المكون من 4 أرقام', 'error');
+                return;
+            }
+
+            // قبول الرمز التجريبي 1234 أو أي 4 أرقام للتسهيل مع التنبيه
+            if (enteredCode !== '1234') {
+                showToast('الرمز غير صحيح! استخدم الرمز التجريبي 1234', 'error');
+                boxes.forEach(b => b.value = '');
+                boxes[0].focus();
+                return;
+            }
+
+            clearInterval(otpCountdownInterval);
+            const isNewUser = document.getElementById('is-new-user-checkbox').checked;
+
+            if (isNewUser) {
+                // الانتقال لخطوة إكمال البيانات (الاسم والمحافظة)
+                document.getElementById('auth-step-otp').classList.add('hidden');
+                document.getElementById('auth-step-register').classList.remove('hidden');
+                document.getElementById('auth-modal-title').textContent = 'بيانات الحساب الجديد';
+            } else {
+                // تسجيل دخول مباشر لحساب حالي
+                finalizeLogin('علي الكركوكي', 'كركوك', 50000);
+            }
+        }
+
+        function completeRegistration() {
+            const fullName = document.getElementById('reg-fullname').value.trim();
+            const governorate = document.getElementById('reg-governorate').value;
+
+            if (fullName.length < 3) {
+                showToast('يرجى إدخال اسمك الكامل بشكل صحيح', 'error');
+                return;
+            }
+
+            // منح 25,000 د.ع رصيد ترحيبي للحساب الجديد
+            finalizeLogin(fullName, governorate, 25000);
+        }
+
+        function finalizeLogin(name, governorate, initialBalance) {
+            currentUser = {
+                name: name,
+                phone: tempPhoneRaw,
+                formattedPhone: formatDisplayIraqiPhone(tempPhoneRaw),
+                governorate: governorate
+            };
+            walletBalance = initialBalance;
+            updateAuthUI();
+            closeModal('auth-modal');
+
+            showToast(`أهلاً بك ${currentUser.name}! تم تفعيل محفظتك برصيد ${formatIQD(walletBalance)}`, 'success');
+
+            // تنفيذ العملية المعلقة (مثل إتمام الشراء) إن وجدت
+            if (typeof pendingActionCallback === 'function') {
+                const actionToRun = pendingActionCallback;
+                pendingActionCallback = null;
+                setTimeout(() => actionToRun(), 350);
+            }
+        }
+
+        // نافذة حسابي وتعديل البيانات وتسجيل الخروج
+        function openProfileModal() {
+            if (!currentUser) return;
+            document.getElementById('profile-modal-avatar').textContent = currentUser.name.trim().charAt(0);
+            document.getElementById('profile-modal-name').textContent = currentUser.name;
+            document.getElementById('profile-modal-phone').textContent = currentUser.formattedPhone;
+            document.getElementById('edit-profile-name').value = currentUser.name;
+            document.getElementById('edit-profile-gov').value = currentUser.governorate;
+            openModal('profile-modal');
+        }
+
+        function saveProfileChanges() {
+            if (!currentUser) return;
+            const newName = document.getElementById('edit-profile-name').value.trim();
+            const newGov = document.getElementById('edit-profile-gov').value;
+
+            if (newName.length < 3) {
+                showToast('الاسم قصير جداً!', 'error');
+                return;
+            }
+
+            currentUser.name = newName;
+            currentUser.governorate = newGov;
+            updateAuthUI();
+            document.getElementById('profile-modal-avatar').textContent = currentUser.name.charAt(0);
+            document.getElementById('profile-modal-name').textContent = currentUser.name;
+            showToast('تم حفظ تعديلات حسابك بنجاح', 'success');
+        }
+
+        function logoutUser() {
+            currentUser = null;
+            pendingActionCallback = null;
+            closeModal('profile-modal');
+            updateAuthUI();
+            showToast('تم تسجيل الخروج من حسابك بنجاح', 'info');
+        }
+
+        // 3. دوال تنسيق الأرقام والواجهة
+        function formatIQD(amount) {
+            return amount.toLocaleString('en-US') + ' د.ع';
+        }
+
+        function updateWalletUI() {
+            document.getElementById('wallet-balance-display').textContent = formatIQD(walletBalance);
+            document.getElementById('modal-wallet-hint').textContent = `الرصيد المتاح: ${formatIQD(walletBalance)}`;
+        }
+
+        // 4. عرض المنتجات في الشبكة (Render Products)
+        function renderProducts() {
+            const grid = document.getElementById('products-grid');
+            const emptyState = document.getElementById('empty-state');
+            const searchQuery = document.getElementById('search-input').value.trim().toLowerCase();
+
+            const filtered = productsData.filter(item => {
+                const matchesCat = currentCategory === 'all' || item.category === currentCategory;
+                const matchesSearch = item.title.toLowerCase().includes(searchQuery) || 
+                                      item.provider.toLowerCase().includes(searchQuery);
+                return matchesCat && matchesSearch;
+            });
+
+            document.getElementById('products-count').textContent = `${filtered.length} بطاقات`;
+
+            if (filtered.length === 0) {
+                grid.innerHTML = '';
+                emptyState.classList.remove('hidden');
+                return;
+            }
+
+            emptyState.classList.add('hidden');
+            grid.innerHTML = filtered.map(product => {
+                const stockCount = getAvailableStockCount(product.id);
+                const isOutOfStock = !product.active || stockCount === 0;
+
+                return `
+                <div class="group bg-brand-card ${isOutOfStock ? 'opacity-75' : 'hover:bg-brand-surface/80 hover:border-emerald-500/50'} border border-slate-800 rounded-2xl p-4 transition-all duration-300 flex flex-col justify-between shadow-lg">
+                    <div>
+                        <!-- رأس البطاقة المصغرة -->
+                        <div class="relative h-28 rounded-xl bg-gradient-to-br ${product.gradient} p-3.5 flex flex-col justify-between overflow-hidden mb-3.5 shadow-inner">
+                            <div class="flex items-center justify-between relative z-10">
+                                <span class="text-[11px] font-bold text-white/90 bg-black/25 backdrop-blur-sm px-2.5 py-0.5 rounded-lg">
+                                    ${product.provider}
+                                </span>
+                                ${isOutOfStock 
+                                    ? `<span class="text-[10px] font-extrabold bg-rose-600 text-white px-2 py-0.5 rounded-md shadow">نفد المخزون</span>`
+                                    : (product.badge ? `<span class="text-[10px] font-extrabold bg-white text-slate-900 px-2 py-0.5 rounded-md shadow">${product.badge}</span>` : '')
+                                }
+                            </div>
+                            <div class="flex items-end justify-between relative z-10">
+                                <span class="text-white font-extrabold text-base sm:text-lg drop-shadow">${product.title}</span>
+                                <i class="fa-solid ${product.icon} text-white/30 text-3xl group-hover:scale-110 transition-transform"></i>
+                            </div>
+                            <!-- دائرة زخرفية -->
+                            <div class="w-24 h-24 rounded-full bg-white/10 absolute -bottom-8 -left-8"></div>
+                        </div>
+
+                        <!-- تفاصيل البطاقة -->
+                        <div class="flex items-center justify-between mb-3">
+                            <div>
+                                <span class="text-[11px] text-slate-400 block">سعر البيع</span>
+                                <span class="text-lg font-extrabold text-emerald-400">${formatIQD(product.price)}</span>
+                            </div>
+                            <span class="text-[11px] ${isOutOfStock ? 'text-rose-400 border-rose-500/30' : 'text-slate-400 border-slate-800'} flex items-center gap-1 bg-brand-dark px-2.5 py-1 rounded-lg border">
+                                <i class="fa-solid ${isOutOfStock ? 'fa-circle-xmark text-rose-400' : 'fa-bolt text-amber-400'}"></i>
+                                ${isOutOfStock ? 'غير متوفر حالياً' : `متوفر (${stockCount})`}
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- زر الشراء -->
+                    <button onclick="initiatePurchase('${product.id}')" ${isOutOfStock ? 'disabled' : ''} class="w-full py-2.5 px-4 rounded-xl ${isOutOfStock ? 'bg-slate-800/70 text-slate-500 border-slate-800 cursor-not-allowed' : 'bg-brand-surface group-hover:bg-emerald-500 text-white group-hover:text-slate-950 border-slate-700 group-hover:border-emerald-500 active:scale-95'} font-bold text-sm border transition-all flex items-center justify-center gap-2">
+                        <i class="fa-solid ${isOutOfStock ? 'fa-ban' : 'fa-cart-plus'}"></i>
+                        ${isOutOfStock ? 'نفد المخزون' : 'شراء الآن'}
+                    </button>
+                </div>
+            `}).join('');
+        }
+
+        // دالة مساعدة لحساب عدد الأكواد المتوفرة لمنتج معين
+        function getAvailableStockCount(productId) {
+            const list = digitalCodesVault[productId] || [];
+            return list.filter(item => item.status === 'available').length;
+        }
+
+        // 5. التصفية حسب التصنيف والبحث
+        function setCategory(category) {
+            currentCategory = category;
+            document.querySelectorAll('.cat-btn').forEach(btn => {
+                if (btn.dataset.cat === category) {
+                    btn.className = 'cat-btn active bg-emerald-500 text-slate-950 font-bold text-xs sm:text-sm px-4 py-2.5 rounded-xl whitespace-nowrap transition flex items-center gap-2';
+                } else {
+                    btn.className = 'cat-btn bg-brand-card hover:bg-brand-surface text-slate-300 border border-slate-800 font-semibold text-xs sm:text-sm px-4 py-2.5 rounded-xl whitespace-nowrap transition flex items-center gap-2';
+                }
+            });
+            renderProducts();
+        }
+
+        function filterProducts() {
+            renderProducts();
+        }
+
+        function resetFilters() {
+            document.getElementById('search-input').value = '';
+            setCategory('all');
+        }
+
+        // 6. إدارة النوافذ المنبثقة (Modals)
+        function openModal(id) {
+            const modal = document.getElementById(id);
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeModal(id) {
+            const modal = document.getElementById(id);
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        // 7. منطق الشراء والدفع (Checkout Flow)
+        function initiatePurchase(productId) {
+            selectedProduct = productsData.find(p => p.id === productId);
+            if (!selectedProduct) return;
+
+            if (!selectedProduct.active || getAvailableStockCount(productId) === 0) {
+                showToast('عذراً، نفد مخزون هذه البطاقة حالياً!', 'error');
+                return;
+            }
+
+            // التحقق من تسجيل الدخول قبل إتمام الشراء
+            if (!currentUser) {
+                pendingActionCallback = () => openCheckoutModal(productId);
+                showToast('سجّل دخولك برقمك العراقي لإتمام عملية الشراء واستلام الكود', 'info');
+                openAuthModal();
+                return;
+            }
+
+            openCheckoutModal(productId);
+        }
+
+        function openCheckoutModal(productId) {
+            selectedProduct = productsData.find(p => p.id === productId);
+            if (!selectedProduct) return;
+
+            document.getElementById('checkout-title').textContent = selectedProduct.title;
+            document.getElementById('checkout-provider').textContent = selectedProduct.provider;
+            document.getElementById('checkout-price').textContent = formatIQD(selectedProduct.price);
+            document.getElementById('checkout-user-tag').textContent = currentUser ? `الحساب: ${currentUser.name}` : '';
+            
+            const iconBox = document.getElementById('checkout-icon-box');
+            iconBox.className = `w-14 h-14 rounded-xl flex items-center justify-center text-white text-2xl shrink-0 shadow-lg bg-gradient-to-br ${selectedProduct.gradient}`;
+            iconBox.innerHTML = `<i class="fa-solid ${selectedProduct.icon}"></i>`;
+
+            updateWalletUI();
+            openModal('checkout-modal');
+        }
+
+        // تنسيق مظهر اختيار وسيلة الدفع عند النقر عليها
+        document.querySelectorAll('input[name="payment_method"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                document.querySelectorAll('.payment-option').forEach(opt => {
+                    opt.classList.remove('border-emerald-500', 'bg-emerald-500/10');
+                    opt.classList.add('border-slate-700/80', 'bg-brand-surface/60');
+                });
+                const parentLabel = this.closest('.payment-option');
+                parentLabel.classList.remove('border-slate-700/80', 'bg-brand-surface/60');
+                parentLabel.classList.add('border-emerald-500', 'bg-emerald-500/10');
+            });
+        });
+
+        // توليد كود شحن عشوائي واقعي مكون من 16 رقماً
+        function generateRechargeCode() {
+            const segment = () => Math.floor(1000 + Math.random() * 9000);
+            return `${segment()}-${segment()}-${segment()}-${segment()}`;
+        }
+
+        function processPayment() {
+            if (!selectedProduct) return;
+
+            const selectedMethod = document.querySelector('input[name="payment_method"]:checked').value;
+            const methodNames = {
+                wallet: 'المحفظة الداخلية',
+                zaincash: 'زين كاش (ZainCash)',
+                qicard: 'كي كارد / ماستركارد الرافدين',
+                asiahawala: 'آسيا حوالة (AsiaHawala)'
+            };
+
+            // التحقق من رصيد المحفظة إذا تم اختيارها
+            if (selectedMethod === 'wallet') {
+                if (walletBalance < selectedProduct.price) {
+                    showToast('رصيد المحفظة غير كافٍ! يرجى شحن المحفظة أو اختيار بوابة دفع أخرى.', 'error');
+                    return;
+                }
+                walletBalance -= selectedProduct.price;
+                updateWalletUI();
+            }
+
+            // محاكاة معالجة سريعة
+            const btn = document.getElementById('confirm-pay-btn');
+            const originalHTML = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> جاري سحب الكود من المخزون...`;
+
+            setTimeout(() => {
+                btn.disabled = false;
+                btn.innerHTML = originalHTML;
+
+                // سحب كود حقيقي متاح من مخزون الإدارة (Digital Codes Vault)
+                const vaultList = digitalCodesVault[selectedProduct.id] || [];
+                const availableEntry = vaultList.find(c => c.status === 'available');
+
+                if (!availableEntry) {
+                    if (selectedMethod === 'wallet') {
+                        walletBalance += selectedProduct.price;
+                        updateWalletUI();
+                    }
+                    closeModal('checkout-modal');
+                    renderProducts();
+                    showToast('عذراً، نفد آخر كود من المخزون للتو!', 'error');
+                    return;
+                }
+
+                // تحديث حالة الكود إلى "مباع"
+                availableEntry.status = 'sold';
+                availableEntry.soldTo = currentUser ? currentUser.name : 'زبون';
+                lastGeneratedCode = availableEntry.code;
+
+                const now = new Date();
+                const timeStr = now.toLocaleTimeString('ar-IQ', { hour: '2-digit', minute: '2-digit' });
+
+                ordersHistory.unshift({
+                    orderId: 'IQ-' + Math.floor(10000 + Math.random() * 90000),
+                    productId: selectedProduct.id,
+                    customerName: currentUser ? currentUser.name : 'زبون زائر',
+                    customerPhone: currentUser ? currentUser.formattedPhone : '+964 770 000 0000',
+                    title: selectedProduct.title,
+                    price: selectedProduct.price,
+                    cost: selectedProduct.cost || Math.round(selectedProduct.price * 0.92),
+                    code: lastGeneratedCode,
+                    method: methodNames[selectedMethod],
+                    status: 'completed',
+                    date: `اليوم، ${timeStr}`
+                });
+
+                updateOrdersBadge();
+                renderProducts(); // تحديث عداد المخزون في واجهة المتجر
+                closeModal('checkout-modal');
+
+                // عرض شاشة النجاح والكود فوراً
+                document.getElementById('success-product-name').textContent = selectedProduct.title;
+                document.getElementById('generated-code-display').textContent = lastGeneratedCode;
+                document.getElementById('how-to-use-hint').textContent = selectedProduct.hint;
+                openModal('success-modal');
+
+                showToast('تم الدفع بنجاح واستلام الكود فوراً!', 'success');
+            }, 600);
+        }
+
+        // 8. شحن المحفظة (Wallet Top-up Logic)
+        function openTopupModal() {
+            openModal('topup-modal');
+        }
+
+        function selectTopupAmount(amount, btnElement) {
+            selectedTopupAmount = amount;
+            document.querySelectorAll('.topup-amt-btn').forEach(btn => {
+                btn.className = 'topup-amt-btn py-3 rounded-xl border border-slate-700 bg-brand-surface hover:border-emerald-500 font-bold text-sm text-white transition';
+            });
+            btnElement.className = 'topup-amt-btn py-3 rounded-xl border-2 border-emerald-500 bg-emerald-500/15 font-bold text-sm text-emerald-400 transition';
+        }
+
+        function confirmTopup() {
+            const gateway = document.querySelector('input[name="topup_gateway"]:checked').value;
+            walletBalance += selectedTopupAmount;
+            updateWalletUI();
+            closeModal('topup-modal');
+            showToast(`تم شحن محفظتك بمبلغ ${formatIQD(selectedTopupAmount)} عبر ${gateway} بنجاح!`, 'success');
+        }
+
+        // 9. سجل الطلبات ونسخ الأكواد (Orders History & Clipboard)
+        function updateOrdersBadge() {
+            document.getElementById('orders-badge').textContent = ordersHistory.length;
+        }
+
+        function openOrdersModal() {
+            const container = document.getElementById('orders-list-container');
+            
+            if (ordersHistory.length === 0) {
+                container.innerHTML = `<p class="text-center text-slate-400 py-8 text-sm">لا توجد طلبات سابقة حتى الآن.</p>`;
+            } else {
+                container.innerHTML = ordersHistory.map(order => `
+                    <div class="bg-brand-surface border border-slate-700/80 rounded-xl p-4 space-y-2.5">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <span class="text-[11px] text-indigo-400 font-bold">#${order.orderId} • ${order.date}</span>
+                                <h4 class="font-bold text-sm text-white">${order.title}</h4>
+                            </div>
+                            <span class="font-extrabold text-sm text-emerald-400">${formatIQD(order.price)}</span>
+                        </div>
+                        <div class="bg-brand-dark border border-slate-800 rounded-lg px-3 py-2 flex items-center justify-between gap-2">
+                            <span dir="ltr" class="font-mono font-bold text-sm text-slate-200 tracking-wider select-all">${order.code}</span>
+                            <button onclick="copyTextToClipboard('${order.code}')" class="bg-emerald-500/15 hover:bg-emerald-500 text-emerald-400 hover:text-slate-950 text-xs font-bold px-2.5 py-1.5 rounded-lg transition flex items-center gap-1 shrink-0">
+                                <i class="fa-regular fa-copy"></i> نسخ
+                            </button>
+                        </div>
+                        <div class="text-[11px] text-slate-400 flex items-center justify-between">
+                            <span>طريقة الدفع: ${order.method}</span>
+                            <span class="text-emerald-400"><i class="fa-solid fa-circle-check"></i> مكتمل</span>
+                        </div>
+                    </div>
+                `).join('');
+            }
+            openModal('orders-modal');
+        }
+
+        function copyGeneratedCode() {
+            copyTextToClipboard(lastGeneratedCode);
+        }
+
+        // استخدام document.execCommand('copy') لضمان التوافق التام داخل بيئة العرض (iFrame)
+        function copyTextToClipboard(text) {
+            const tempInput = document.createElement('input');
+            tempInput.value = text;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            tempInput.setSelectionRange(0, 99999);
+            try {
+                document.execCommand('copy');
+                showToast('تم نسخ الكود بنجاح: ' + text, 'success');
+            } catch (err) {
+                showToast('تعذر النسخ التلقائي، يرجى تحديد الكود ونسخه يدوياً.', 'error');
+            }
+            document.body.removeChild(tempInput);
+        }
+
+        // 10. نظام الإشعارات الأنيق (Toast Notification System)
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            
+            let bgClass = 'bg-slate-900 border-emerald-500 text-white';
+            let iconHtml = '<i class="fa-solid fa-circle-check text-emerald-400 text-lg"></i>';
+
+            if (type === 'error') {
+                bgClass = 'bg-slate-900 border-rose-500 text-white';
+                iconHtml = '<i class="fa-solid fa-circle-exclamation text-rose-400 text-lg"></i>';
+            } else if (type === 'info') {
+                bgClass = 'bg-slate-900 border-indigo-500 text-white';
+                iconHtml = '<i class="fa-solid fa-circle-info text-indigo-400 text-lg"></i>';
+            }
+
+            toast.className = `${bgClass} border-r-4 rounded-xl px-4 py-3 shadow-2xl flex items-center gap-3 text-xs sm:text-sm font-semibold transform transition-all duration-300 translate-y-0 opacity-100`;
+            toast.innerHTML = `${iconHtml}<span>${message}</span>`;
+
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateY(-10px)';
+                setTimeout(() => toast.remove(), 300);
+            }, 3200);
+        }
+
+        // =====================================================================
+        // 11. برمجة لوحة تحكم المدير والمسؤولين (Admin & Staff Dashboard Logic)
+        // =====================================================================
+
+        function openAdminAccess() {
+            if (currentAdmin) {
+                enterAdminDashboard();
+                return;
+            }
+            const selectEl = document.getElementById('admin-account-select');
+            selectEl.innerHTML = adminStaffList.map(adm => `
+                <option value="${adm.id}">${adm.name} (${adm.role})</option>
+            `).join('');
+            document.getElementById('admin-pin-input').value = '';
+            openModal('admin-login-modal');
+        }
+
+        function verifyAdminLogin() {
+            const selectedId = document.getElementById('admin-account-select').value;
+            const enteredPin = document.getElementById('admin-pin-input').value.trim();
+            const staffObj = adminStaffList.find(a => a.id === selectedId);
+
+            if (!staffObj) return;
+            if (enteredPin !== staffObj.pin && enteredPin !== '2026') {
+                showToast('رمز الدخول السري غير صحيح! جرب 2026', 'error');
+                return;
+            }
+
+            currentAdmin = staffObj;
+            closeModal('admin-login-modal');
+            enterAdminDashboard();
+            showToast(`تم تسجيل الدخول إلى الإدارة بصلاحية: ${currentAdmin.role}`, 'success');
+        }
+
+        function quickDemoAdminLogin() {
+            currentAdmin = adminStaffList[0]; // المدير العام
+            closeModal('admin-login-modal');
+            enterAdminDashboard();
+            showToast(`أهلاً بك ${currentAdmin.name} في مركز التحكم`, 'success');
+        }
+
+        function enterAdminDashboard() {
+            if (!currentAdmin) return;
+            document.getElementById('admin-active-name-label').textContent = `مرحباً، ${currentAdmin.name}`;
+            document.getElementById('admin-active-role-badge').textContent = currentAdmin.role;
+
+            const view = document.getElementById('admin-dashboard-view');
+            view.classList.remove('hidden');
+            view.classList.add('flex');
+
+            refreshAllAdminViews();
+        }
+
+        function exitAdminDashboard() {
+            const view = document.getElementById('admin-dashboard-view');
+            view.classList.add('hidden');
+            view.classList.remove('flex');
+            renderProducts();
+        }
+
+        function logoutAdmin() {
+            currentAdmin = null;
+            exitAdminDashboard();
+            showToast('تم تسجيل الخروج من لوحة الإدارة', 'info');
+        }
+
+        function switchAdminTab(tabName) {
+            currentAdminTab = tabName;
+
+            // تحديث أزرار التنقل (للموبايل والديسكتوب)
+            document.querySelectorAll('.admin-nav-btn').forEach(btn => {
+                const isMobile = btn.closest('.lg\\:hidden');
+                if (btn.dataset.adminTab === tabName) {
+                    btn.className = isMobile
+                        ? 'admin-nav-btn active bg-amber-500 text-slate-950 font-bold text-xs px-3.5 py-2 rounded-xl whitespace-nowrap flex items-center gap-1.5'
+                        : 'admin-nav-btn active w-full text-right px-4 py-3 rounded-xl bg-amber-500 text-slate-950 font-bold text-sm flex items-center justify-between transition';
+                } else {
+                    btn.className = isMobile
+                        ? 'admin-nav-btn bg-brand-surface text-slate-300 font-semibold text-xs px-3.5 py-2 rounded-xl whitespace-nowrap flex items-center gap-1.5'
+                        : 'admin-nav-btn w-full text-right px-4 py-3 rounded-xl text-slate-300 hover:bg-brand-surface font-semibold text-sm flex items-center justify-between transition';
+                }
+            });
+
+            // إظهار التبويب المطلوب
+            document.querySelectorAll('.admin-tab-panel').forEach(panel => {
+                panel.classList.add('hidden');
+            });
+            document.getElementById(`admin-tab-${tabName}`).classList.remove('hidden');
+
+            refreshAllAdminViews();
+        }
+
+        function refreshAllAdminViews() {
+            renderAdminOverview();
+            renderAdminProductsTable();
+            renderAdminVaultSection();
+            renderAdminOrders();
+            renderAdminStaffSection();
+        }
+
+        // 11.1 نظرة عامة والإحصائيات
+        function renderAdminOverview() {
+            const completedOrders = ordersHistory.filter(o => o.status === 'completed');
+            const totalSales = completedOrders.reduce((sum, o) => sum + o.price, 0);
+            const totalProfit = completedOrders.reduce((sum, o) => sum + (o.price - (o.cost || Math.round(o.price * 0.92))), 0);
+
+            let totalAvailableCodes = 0;
+            let lowStockProductsCount = 0;
+            productsData.forEach(p => {
+                const cnt = getAvailableStockCount(p.id);
+                totalAvailableCodes += cnt;
+                if (cnt < 3) lowStockProductsCount++;
+            });
+
+            document.getElementById('kpi-total-sales').textContent = formatIQD(totalSales);
+            document.getElementById('kpi-net-profit').textContent = formatIQD(totalProfit);
+            document.getElementById('kpi-completed-orders').textContent = completedOrders.length;
+            document.getElementById('kpi-available-codes').textContent = `${totalAvailableCodes} كود`;
+            document.getElementById('kpi-users-count').textContent = currentUser ? '1,429' : '1,428';
+
+            const lowBadge = document.getElementById('sidebar-low-stock-badge');
+            const lowHint = document.getElementById('kpi-low-stock-hint');
+            if (lowStockProductsCount > 0) {
+                lowBadge.textContent = lowStockProductsCount;
+                lowBadge.classList.remove('hidden');
+                lowHint.textContent = `تنبيه: ${lowStockProductsCount} بطاقات مخزونها منخفض`;
+                lowHint.className = 'text-[11px] text-rose-400 font-bold';
+            } else {
+                lowBadge.classList.add('hidden');
+                lowHint.textContent = 'جميع البطاقات متوفرة';
+                lowHint.className = 'text-[11px] text-emerald-400';
+            }
+
+            // رسم بياني لتوزيع المبيعات حسب بوابات الدفع العراقية
+            const gateways = [
+                { key: 'زين كاش', label: 'زين كاش (ZainCash)', color: 'bg-pink-500', text: 'text-pink-400' },
+                { key: 'كي كارد', label: 'ماستركارد الرافدين / كي كارد', color: 'bg-amber-500', text: 'text-amber-400' },
+                { key: 'المحفظة', label: 'المحفظة الداخلية', color: 'bg-emerald-500', text: 'text-emerald-400' },
+                { key: 'آسيا حوالة', label: 'آسيا حوالة (AsiaHawala)', color: 'bg-rose-500', text: 'text-rose-400' }
+            ];
+
+            const chartContainer = document.getElementById('payment-chart-container');
+            chartContainer.innerHTML = gateways.map(gw => {
+                const gwTotal = completedOrders
+                    .filter(o => o.method.includes(gw.key))
+                    .reduce((s, o) => s + o.price, 0);
+                const pct = totalSales > 0 ? Math.round((gwTotal / totalSales) * 100) : 0;
+
+                return `
+                    <div>
+                        <div class="flex items-center justify-between text-xs mb-1.5">
+                            <span class="font-bold ${gw.text}">${gw.label}</span>
+                            <span class="text-slate-300 font-mono">${formatIQD(gwTotal)} (${pct}%)</span>
+                        </div>
+                        <div class="w-full h-3 bg-brand-dark rounded-full overflow-hidden border border-slate-800">
+                            <div class="${gw.color} h-full rounded-full transition-all duration-500" style="width: ${Math.max(pct, 4)}%"></div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            // أحدث العمليات الحية
+            const feedContainer = document.getElementById('admin-recent-feed');
+            feedContainer.innerHTML = ordersHistory.slice(0, 4).map(ord => `
+                <div class="bg-brand-surface/70 border border-slate-800 rounded-xl p-3 flex items-center justify-between gap-2">
+                    <div>
+                        <p class="text-xs font-bold text-white">${ord.title}</p>
+                        <p class="text-[11px] text-slate-400">${ord.customerName} • ${ord.method}</p>
+                    </div>
+                    <div class="text-left">
+                        <span class="block text-xs font-extrabold ${ord.status === 'refunded' ? 'text-rose-400 line-through' : 'text-emerald-400'}">${formatIQD(ord.price)}</span>
+                        <span class="text-[10px] text-slate-500">${ord.date}</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // 11.2 إدارة البطاقات والأسعار
+        function renderAdminProductsTable() {
+            const tbody = document.getElementById('admin-products-tbody');
+            const catNames = {
+                telecom: 'رصيد موبايل',
+                internet: 'إنترنت',
+                gaming: 'ألعاب',
+                shopping: 'بطاقات تسوق'
+            };
+
+            tbody.innerHTML = productsData.map(prod => {
+                const stock = getAvailableStockCount(prod.id);
+                const profit = prod.price - (prod.cost || 0);
+
+                return `
+                    <tr class="hover:bg-brand-surface/40 transition">
+                        <td class="p-3.5">
+                            <div class="flex items-center gap-2.5">
+                                <div class="w-9 h-9 rounded-lg bg-gradient-to-br ${prod.gradient} flex items-center justify-center text-white text-sm shrink-0">
+                                    <i class="fa-solid ${prod.icon}"></i>
+                                </div>
+                                <div>
+                                    <p class="font-bold text-white text-xs sm:text-sm">${prod.title}</p>
+                                    <span class="text-[11px] text-slate-400">${prod.provider}</span>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="p-3.5 text-xs text-slate-300">${catNames[prod.category] || prod.category}</td>
+                        <td class="p-3.5">
+                            <div class="flex items-center gap-1.5">
+                                <input type="number" value="${prod.price}" onchange="adminUpdateProductPrice('${prod.id}', this.value)"
+                                    class="w-24 bg-brand-dark border border-slate-700 focus:border-emerald-500 rounded-lg px-2.5 py-1.5 text-xs font-bold text-emerald-400 outline-none">
+                                <span class="text-[11px] text-slate-400">د.ع</span>
+                            </div>
+                        </td>
+                        <td class="p-3.5 text-xs">
+                            <span class="block text-slate-400">التكلفة: ${formatIQD(prod.cost || 0)}</span>
+                            <span class="text-indigo-400 font-bold">الربح: ${formatIQD(profit)}</span>
+                        </td>
+                        <td class="p-3.5">
+                            <span class="px-2.5 py-1 rounded-lg text-xs font-bold ${stock < 3 ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30' : 'bg-emerald-500/15 text-emerald-400'}">
+                                ${stock} كود
+                            </span>
+                        </td>
+                        <td class="p-3.5">
+                            <button onclick="adminToggleProductStatus('${prod.id}')" class="px-2.5 py-1 rounded-lg text-xs font-bold transition ${prod.active ? 'bg-emerald-500/20 text-emerald-400' : 'bg-slate-800 text-slate-400'}">
+                                ${prod.active ? 'مفعّل' : 'متوقف'}
+                            </button>
+                        </td>
+                        <td class="p-3.5 text-center">
+                            <button onclick="adminDeleteProduct('${prod.id}')" title="حذف البطاقة" class="w-8 h-8 rounded-lg bg-rose-500/15 hover:bg-rose-500 text-rose-400 hover:text-white transition">
+                                <i class="fa-solid fa-trash-can text-xs"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function adminAddProduct() {
+            if (!currentAdmin?.permissions?.pricing) {
+                showToast('ليس لديك صلاحية إضافة أو تعديل البطاقات!', 'error');
+                return;
+            }
+
+            const title = document.getElementById('new-card-title').value.trim();
+            const provider = document.getElementById('new-card-provider').value.trim() || 'Cartak IQ';
+            const category = document.getElementById('new-card-category').value;
+            const price = parseInt(document.getElementById('new-card-price').value, 10);
+            const cost = parseInt(document.getElementById('new-card-cost').value, 10) || Math.round(price * 0.92);
+            const badge = document.getElementById('new-card-badge').value.trim() || null;
+            const gradient = document.getElementById('new-card-gradient').value;
+
+            if (!title || isNaN(price) || price <= 0) {
+                showToast('يرجى إدخال اسم البطاقة وسعر البيع الصحيح', 'error');
+                return;
+            }
+
+            const iconMap = {
+                telecom: 'fa-tower-cell',
+                internet: 'fa-globe',
+                gaming: 'fa-gamepad',
+                shopping: 'fa-bag-shopping'
+            };
+
+            const newId = 'prod-' + Date.now();
+            productsData.unshift({
+                id: newId,
+                title,
+                provider,
+                category,
+                price,
+                cost,
+                active: true,
+                badge,
+                gradient,
+                icon: iconMap[category] || 'fa-credit-card',
+                hint: 'أدخل الكود المرفق في التطبيق أو عبر رمز التعبئة الخاص بالشركة'
+            });
+
+            // تهيئة مخزون مبدئي بـ 3 أكواد للبطاقة الجديدة
+            digitalCodesVault[newId] = [
+                { code: generateRechargeCode(), status: 'available', addedAt: '2026-11-07' },
+                { code: generateRechargeCode(), status: 'available', addedAt: '2026-11-07' },
+                { code: generateRechargeCode(), status: 'available', addedAt: '2026-11-07' }
+            ];
+
+            // تفريغ الحقول
+            document.getElementById('new-card-title').value = '';
+            document.getElementById('new-card-price').value = '';
+            document.getElementById('new-card-cost').value = '';
+            document.getElementById('new-card-badge').value = '';
+
+            renderProducts();
+            refreshAllAdminViews();
+            showToast(`تمت إضافة "${title}" للمتجر مع 3 أكواد جاهزة!`, 'success');
+        }
+
+        function adminUpdateProductPrice(productId, newPriceRaw) {
+            if (!currentAdmin?.permissions?.pricing) {
+                showToast('ليس لديك صلاحية تعديل الأسعار!', 'error');
+                renderAdminProductsTable();
+                return;
+            }
+            const newPrice = parseInt(newPriceRaw, 10);
+            if (isNaN(newPrice) || newPrice <= 0) return;
+
+            const prod = productsData.find(p => p.id === productId);
+            if (prod) {
+                prod.price = newPrice;
+                renderProducts();
+                refreshAllAdminViews();
+                showToast(`تم تحديث سعر ${prod.title} إلى ${formatIQD(newPrice)}`, 'success');
+            }
+        }
+
+        function adminToggleProductStatus(productId) {
+            if (!currentAdmin?.permissions?.pricing) {
+                showToast('ليس لديك صلاحية تغيير حالة البطاقات!', 'error');
+                return;
+            }
+            const prod = productsData.find(p => p.id === productId);
+            if (prod) {
+                prod.active = !prod.active;
+                renderProducts();
+                refreshAllAdminViews();
+                showToast(`تم ${prod.active ? 'تفعيل' : 'إيقاف'} البطاقة: ${prod.title}`, 'info');
+            }
+        }
+
+        function adminDeleteProduct(productId) {
+            if (!currentAdmin?.permissions?.pricing) {
+                showToast('ليس لديك صلاحية حذف البطاقات!', 'error');
+                return;
+            }
+            const idx = productsData.findIndex(p => p.id === productId);
+            if (idx !== -1) {
+                const removed = productsData.splice(idx, 1)[0];
+                renderProducts();
+                refreshAllAdminViews();
+                showToast(`تم حذف البطاقة: ${removed.title}`, 'info');
+            }
+        }
+
+        // 11.3 مخزون الأكواد الرقمية (Digital Codes Vault)
+        function renderAdminVaultSection() {
+            const selectEl = document.getElementById('vault-product-select');
+            const prevSelected = selectEl.value;
+
+            selectEl.innerHTML = productsData.map(p => `
+                <option value="${p.id}">${p.title} (المتوفر: ${getAvailableStockCount(p.id)})</option>
+            `).join('');
+
+            if (prevSelected && productsData.some(p => p.id === prevSelected)) {
+                selectEl.value = prevSelected;
+            }
+
+            // شبكة ملخص المخزون
+            const summaryGrid = document.getElementById('vault-stock-summary-grid');
+            summaryGrid.innerHTML = productsData.map(p => {
+                const cnt = getAvailableStockCount(p.id);
+                const isLow = cnt < 3;
+                return `
+                    <div onclick="document.getElementById('vault-product-select').value='${p.id}'; renderVaultCodesInspector();"
+                        class="cursor-pointer bg-brand-surface/70 hover:bg-brand-surface border ${isLow ? 'border-rose-500/50' : 'border-slate-800'} rounded-xl p-3 flex items-center justify-between transition">
+                        <div>
+                            <p class="text-xs font-bold text-white">${p.title}</p>
+                            <span class="text-[11px] ${isLow ? 'text-rose-400 font-semibold' : 'text-slate-400'}">
+                                ${isLow ? '⚠️ مخزون منخفض جداً' : 'مخزون مستقر'}
+                            </span>
+                        </div>
+                        <span class="text-sm font-extrabold px-2.5 py-1 rounded-lg ${isLow ? 'bg-rose-500/20 text-rose-400' : 'bg-emerald-500/15 text-emerald-400'}">
+                            ${cnt}
+                        </span>
+                    </div>
+                `;
+            }).join('');
+
+            renderVaultCodesInspector();
+        }
+
+        function renderVaultCodesInspector() {
+            const productId = document.getElementById('vault-product-select').value;
+            const prod = productsData.find(p => p.id === productId);
+            const codes = digitalCodesVault[productId] || [];
+            const availableCnt = codes.filter(c => c.status === 'available').length;
+            const soldCnt = codes.filter(c => c.status === 'sold').length;
+
+            document.getElementById('inspector-title').textContent = `أكواد: ${prod ? prod.title : ''}`;
+            document.getElementById('inspector-counts').textContent = `متاح: ${availableCnt} | مباع: ${soldCnt}`;
+
+            const listEl = document.getElementById('vault-codes-list');
+            if (codes.length === 0) {
+                listEl.innerHTML = `<p class="text-xs text-slate-500 text-center py-6">لا توجد أكواد مخزنة لهذه البطاقة بعد.</p>`;
+                return;
+            }
+
+            listEl.innerHTML = codes.map(item => `
+                <div class="bg-brand-dark border border-slate-800 rounded-lg px-3 py-2 flex items-center justify-between text-xs">
+                    <span dir="ltr" class="font-mono font-bold ${item.status === 'available' ? 'text-emerald-400' : 'text-slate-500 line-through'}">${item.code}</span>
+                    ${item.status === 'available'
+                        ? `<span class="text-[10px] bg-emerald-500/15 text-emerald-400 px-2 py-0.5 rounded font-bold">متاح للبيع</span>`
+                        : `<span class="text-[10px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded">مباع (${item.soldTo || 'زبون'})</span>`
+                    }
+                </div>
+            `).join('');
+        }
+
+        function generateSampleCodesForTextarea() {
+            const lines = [];
+            for (let i = 0; i < 5; i++) {
+                lines.push(generateRechargeCode());
+            }
+            const textarea = document.getElementById('bulk-codes-textarea');
+            textarea.value = (textarea.value ? textarea.value.trim() + '\n' : '') + lines.join('\n');
+        }
+
+        function adminImportBulkCodes() {
+            if (!currentAdmin?.permissions?.stock) {
+                showToast('ليس لديك صلاحية إضافة أكواد للمخزون!', 'error');
+                return;
+            }
+
+            const productId = document.getElementById('vault-product-select').value;
+            const rawText = document.getElementById('bulk-codes-textarea').value.trim();
+            if (!rawText) {
+                showToast('يرجى إدخال كود واحد على الأقل!', 'error');
+                return;
+            }
+
+            const lines = rawText.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+            if (!digitalCodesVault[productId]) digitalCodesVault[productId] = [];
+
+            lines.forEach(codeStr => {
+                digitalCodesVault[productId].unshift({
+                    code: codeStr,
+                    status: 'available',
+                    addedAt: '2026-11-07'
+                });
+            });
+
+            document.getElementById('bulk-codes-textarea').value = '';
+            renderProducts();
+            refreshAllAdminViews();
+            showToast(`تمت إضافة ${lines.length} كود جديد إلى المخزون بنجاح!`, 'success');
+        }
+
+        // 11.4 إدارة الطلبات والعمليات والاسترجاع
+        function renderAdminOrders() {
+            const tbody = document.getElementById('admin-orders-tbody');
+            const query = document.getElementById('admin-order-search').value.trim().toLowerCase();
+            const statusFilter = document.getElementById('admin-order-status-filter').value;
+
+            const filtered = ordersHistory.filter(ord => {
+                const matchStatus = statusFilter === 'all' || ord.status === statusFilter;
+                const matchQuery = !query ||
+                    ord.orderId.toLowerCase().includes(query) ||
+                    (ord.customerName || '').toLowerCase().includes(query) ||
+                    (ord.customerPhone || '').toLowerCase().includes(query) ||
+                    ord.title.toLowerCase().includes(query) ||
+                    ord.code.toLowerCase().includes(query);
+                return matchStatus && matchQuery;
+            });
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" class="p-8 text-center text-slate-400 text-xs">لا توجد طلبات مطابقة للبحث.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = filtered.map(ord => {
+                const isRefunded = ord.status === 'refunded';
+                return `
+                    <tr class="hover:bg-brand-surface/40 transition">
+                        <td class="p-3.5 font-mono text-xs font-bold text-indigo-400">#${ord.orderId}</td>
+                        <td class="p-3.5">
+                            <p class="text-xs font-bold text-white">${ord.customerName || 'علي الكركوكي'}</p>
+                            <span dir="ltr" class="text-[11px] font-mono text-slate-400">${ord.customerPhone || '+964 770 123 4567'}</span>
+                        </td>
+                        <td class="p-3.5 text-xs font-semibold text-slate-200">${ord.title}</td>
+                        <td class="p-3.5">
+                            <span class="block text-xs font-extrabold text-emerald-400">${formatIQD(ord.price)}</span>
+                            <span class="text-[11px] text-slate-400">${ord.method}</span>
+                        </td>
+                        <td class="p-3.5 font-mono text-xs text-slate-300" dir="ltr">${ord.code}</td>
+                        <td class="p-3.5">
+                            ${isRefunded
+                                ? `<span class="px-2 py-0.5 rounded-full text-[11px] font-bold bg-rose-500/20 text-rose-400">مسترجع</span>`
+                                : `<span class="px-2 py-0.5 rounded-full text-[11px] font-bold bg-emerald-500/20 text-emerald-400">مكتمل</span>`
+                            }
+                        </td>
+                        <td class="p-3.5 text-center">
+                            ${isRefunded
+                                ? `<span class="text-[11px] text-slate-500">تم الاسترجاع</span>`
+                                : `<button onclick="adminRefundOrder('${ord.orderId}')" class="px-2.5 py-1 rounded-lg bg-rose-500/15 hover:bg-rose-500 text-rose-400 hover:text-white text-xs font-bold transition">إلغاء واسترجاع</button>`
+                            }
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function adminRefundOrder(orderId) {
+            if (!currentAdmin?.permissions?.refund) {
+                showToast('ليس لديك صلاحية استرجاع المبالغ!', 'error');
+                return;
+            }
+            const ord = ordersHistory.find(o => o.orderId === orderId);
+            if (!ord || ord.status === 'refunded') return;
+
+            ord.status = 'refunded';
+
+            // إعادة المبلغ إلى محفظة الزبون إذا كان مسجلاً
+            if (currentUser) {
+                walletBalance += ord.price;
+                updateWalletUI();
+            }
+
+            refreshAllAdminViews();
+            showToast(`تم إلغاء الطلب #${orderId} وإعادة ${formatIQD(ord.price)} للمحفظة`, 'info');
+        }
+
+        // 11.5 إدارة المشرفين والصلاحيات
+        function renderAdminStaffSection() {
+            const grid = document.getElementById('admin-staff-grid');
+            grid.innerHTML = adminStaffList.map(stf => `
+                <div class="bg-brand-card border border-slate-800 rounded-2xl p-4 space-y-3">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center font-extrabold">
+                                ${stf.name.charAt(0)}
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-sm text-white">${stf.name}</h4>
+                                <span class="text-xs text-amber-400 font-semibold">${stf.role}</span> • <span class="text-[11px] font-mono text-slate-400">PIN: ${stf.pin}</span>
+                            </div>
+                        </div>
+                        ${stf.id !== 'adm-1'
+                            ? `<button onclick="adminRemoveStaff('${stf.id}')" class="text-rose-400 hover:text-rose-300 text-xs"><i class="fa-solid fa-trash"></i></button>`
+                            : `<span class="text-[10px] bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded-full font-bold">الحساب الرئيسي</span>`
+                        }
+                    </div>
+
+                    <div class="grid grid-cols-3 gap-2 pt-2 border-t border-slate-800/80 text-xs">
+                        <label class="flex items-center gap-1.5 cursor-pointer text-slate-300">
+                            <input type="checkbox" ${stf.permissions.stock ? 'checked' : ''} onchange="toggleStaffPerm('${stf.id}', 'stock')" class="accent-amber-500">
+                            <span>المخزون</span>
+                        </label>
+                        <label class="flex items-center gap-1.5 cursor-pointer text-slate-300">
+                            <input type="checkbox" ${stf.permissions.pricing ? 'checked' : ''} onchange="toggleStaffPerm('${stf.id}', 'pricing')" class="accent-amber-500">
+                            <span>الأسعار</span>
+                        </label>
+                        <label class="flex items-center gap-1.5 cursor-pointer text-slate-300">
+                            <input type="checkbox" ${stf.permissions.refund ? 'checked' : ''} onchange="toggleStaffPerm('${stf.id}', 'refund')" class="accent-amber-500">
+                            <span>الاسترجاع</span>
+                        </label>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function toggleStaffPerm(staffId, permKey) {
+            if (!currentAdmin?.permissions?.staff) {
+                showToast('فقط المدير العام يمكنه تعديل صلاحيات المشرفين!', 'error');
+                renderAdminStaffSection();
+                return;
+            }
+            const stf = adminStaffList.find(s => s.id === staffId);
+            if (stf) {
+                stf.permissions[permKey] = !stf.permissions[permKey];
+                showToast(`تم تحديث صلاحيات ${stf.name}`, 'success');
+            }
+        }
+
+        function adminAddStaff() {
+            if (!currentAdmin?.permissions?.staff) {
+                showToast('فقط المدير العام يمكنه إضافة مشرفين جدد!', 'error');
+                return;
+            }
+            const name = document.getElementById('new-staff-name').value.trim();
+            const role = document.getElementById('new-staff-role').value;
+            const pin = document.getElementById('new-staff-pin').value.trim() || '1234';
+
+            if (name.length < 3) {
+                showToast('يرجى إدخال اسم المشرف بشكل صحيح', 'error');
+                return;
+            }
+
+            adminStaffList.push({
+                id: 'adm-' + Date.now(),
+                name,
+                role,
+                pin,
+                permissions: {
+                    stock: true,
+                    pricing: role === 'مدير عام' || role === 'محاسب',
+                    refund: role === 'مدير عام' || role === 'مشرف مبيعات',
+                    staff: role === 'مدير عام'
+                }
+            });
+
+            document.getElementById('new-staff-name').value = '';
+            document.getElementById('new-staff-pin').value = '';
+            renderAdminStaffSection();
+            showToast(`تمت إضافة المشرف ${name} بنجاح!`, 'success');
+        }
+
+        function adminRemoveStaff(staffId) {
+            if (!currentAdmin?.permissions?.staff) {
+                showToast('فقط المدير العام يمكنه حذف المشرفين!', 'error');
+                return;
+            }
+            adminStaffList = adminStaffList.filter(s => s.id !== staffId);
+            renderAdminStaffSection();
+            showToast('تم حذف حساب المشرف', 'info');
+        }
+
+        // تهيئة التطبيق عند التحميل
+        window.addEventListener('DOMContentLoaded', () => {
+            setupOtpInputs();
+            updateAuthUI();
+            renderProducts();
+        });
+    </script>
+</body>
+</html>

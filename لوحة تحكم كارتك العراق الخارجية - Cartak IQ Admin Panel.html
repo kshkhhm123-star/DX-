@@ -1,0 +1,1700 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة تحكم كارتك العراق | Cartak IQ External Admin Panel</title>
+    <!-- تحميل مكتبة Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- تحميل خط Cairo للغة العربية -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- أيقونات FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Cairo', 'sans-serif'],
+                    },
+                    colors: {
+                        admin: {
+                            dark: '#080C16',
+                            card: '#111827',
+                            surface: '#1E293B',
+                            amber: '#F59E0B',
+                            emerald: '#10B981',
+                            indigo: '#6366F1'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #F59E0B; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="bg-slate-100 dark:bg-admin-dark text-slate-900 dark:text-slate-100 font-sans min-h-screen flex flex-col transition-colors duration-200 selection:bg-amber-500 selection:text-slate-950">
+
+    <!-- حاوية الإشعارات المنبثقة (Toast Notifications) -->
+    <div id="toast-container" class="fixed top-4 left-4 right-4 sm:right-auto sm:w-96 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+    <!-- ===================================================================== -->
+    <!-- 1. شاشة تسجيل الدخول الإداري المستقلة (Standalone Admin Login Screen) -->
+    <!-- ===================================================================== -->
+    <section id="admin-login-screen" class="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-slate-950 via-admin-dark to-indigo-950/40">
+        <div class="w-full max-w-md bg-admin-card border border-slate-800 rounded-3xl shadow-2xl overflow-hidden">
+            <!-- رأس بطاقة الدخول -->
+            <div class="p-6 sm:p-8 text-center border-b border-slate-800 bg-gradient-to-b from-amber-500/10 to-transparent">
+                <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 text-slate-950 flex items-center justify-center text-3xl font-extrabold mx-auto mb-4 shadow-xl shadow-amber-500/20">
+                    <i class="fa-solid fa-shield-halved"></i>
+                </div>
+                <span class="inline-flex items-center gap-1.5 text-[11px] font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 px-3 py-1 rounded-full mb-2">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                    نظام إدارة مستقل • مزامنة لحظية مع المتجر
+                </span>
+                <h1 class="text-xl sm:text-2xl font-extrabold text-white">بوابة الإدارة والتحكم</h1>
+                <p class="text-xs text-slate-400 mt-1">منصة كارتك العراق (Cartak IQ Control Center)</p>
+            </div>
+
+            <!-- نموذج التحقق من الهوية -->
+            <div class="p-6 sm:p-8 space-y-5">
+                <div>
+                    <label class="block text-xs font-bold text-slate-300 mb-2">اختر حساب المسؤول / المشرف:</label>
+                    <select id="login-staff-select" class="w-full bg-admin-dark border border-slate-700 focus:border-amber-500 rounded-xl px-4 py-3 text-sm text-white outline-none transition">
+                        <!-- يتم تعبئتها ديناميكياً من cartak_staff_v1 -->
+                    </select>
+                </div>
+
+                <div>
+                    <div class="flex items-center justify-between mb-2">
+                        <label class="text-xs font-bold text-slate-300">رمز المرور الإداري (PIN):</label>
+                        <span class="text-[11px] font-mono text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded">الرمز العام: 2026</span>
+                    </div>
+                    <input type="password" id="login-pin-input" maxlength="6" placeholder="••••" onkeydown="if(event.key==='Enter') handleAdminLogin()"
+                        class="w-full bg-admin-dark border border-slate-700 focus:border-amber-500 rounded-xl px-4 py-3.5 text-center text-2xl font-mono tracking-[0.6em] text-white outline-none transition">
+                </div>
+
+                <div class="space-y-2.5 pt-1">
+                    <button onclick="handleAdminLogin()" class="w-full py-3.5 rounded-xl bg-gradient-to-l from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-extrabold text-sm transition flex items-center justify-center gap-2 shadow-lg shadow-amber-500/20 active:scale-[0.98]">
+                        <i class="fa-solid fa-unlock-keyhole"></i>
+                        <span>تسجيل الدخول إلى لوحة التحكم</span>
+                    </button>
+
+                    <button onclick="quickLoginAsSuperAdmin()" class="w-full py-3 rounded-xl bg-admin-surface hover:bg-slate-700 border border-slate-700 text-emerald-400 font-bold text-xs transition flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-bolt"></i>
+                        <span>دخول سريع تجريبي (مدير عام - 2026)</span>
+                    </button>
+                </div>
+
+                <div class="pt-3 border-t border-slate-800/80 text-center">
+                    <p class="text-[11px] text-slate-500">
+                        مرتبط تلقائياً بقاعدة بيانات المتجر عبر <code class="text-slate-400 font-mono">localStorage</code>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===================================================================== -->
+    <!-- 2. واجهة لوحة التحكم الرئيسية (Main Admin Workspace) -->
+    <!-- ===================================================================== -->
+    <div id="admin-workspace" class="hidden flex-1 flex-col min-h-screen">
+
+        <!-- الشريط العلوي (Top Header Bar) -->
+        <header class="sticky top-0 z-30 bg-white/90 dark:bg-admin-card/95 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 px-4 sm:px-6 py-3 flex items-center justify-between gap-3">
+            <div class="flex items-center gap-3">
+                <!-- زر فتح القائمة الجانبية في الموبايل -->
+                <button onclick="toggleMobileSidebar()" class="lg:hidden w-10 h-10 rounded-xl bg-slate-100 dark:bg-admin-surface text-slate-700 dark:text-slate-200 flex items-center justify-center">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
+
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 text-slate-950 flex items-center justify-center font-extrabold text-lg shadow-md">
+                    <i class="fa-solid fa-shield-halved"></i>
+                </div>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <h1 class="font-extrabold text-sm sm:text-lg text-slate-900 dark:text-white leading-tight">كارتك العراق • الإدارة الخارجية</h1>
+                        <span id="active-role-badge" class="hidden sm:inline-block text-[10px] font-extrabold bg-amber-500/20 text-amber-500 border border-amber-500/30 px-2.5 py-0.5 rounded-full">مدير عام</span>
+                    </div>
+                    <p id="active-admin-welcome" class="text-[11px] text-slate-500 dark:text-slate-400">مرحباً، أ. أحمد البياتي</p>
+                </div>
+            </div>
+
+            <!-- مؤشر المزامنة الحية + أزرار التحكم -->
+            <div class="flex items-center gap-2 sm:gap-3">
+                <!-- مؤشر التزامن الفوري مع المتجر -->
+                <div id="sync-status-pill" class="hidden md:flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 px-3 py-1.5 rounded-xl text-xs font-bold">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
+                    <span id="sync-status-text">متزامن لحظياً مع المتجر</span>
+                </div>
+
+                <!-- زر تحديث قسري من التخزين المحلي -->
+                <button onclick="manualSyncFromStorage()" title="مزامنة البيانات الآن" class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-slate-100 dark:bg-admin-surface hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 flex items-center justify-center transition">
+                    <i id="sync-icon" class="fa-solid fa-arrows-rotate text-sm"></i>
+                </button>
+
+                <!-- زر تبديل الوضع الداكن / الفاتح -->
+                <button onclick="toggleThemeMode()" title="تبديل المظهر (داكن/فاتح)" class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-slate-100 dark:bg-admin-surface hover:bg-slate-200 dark:hover:bg-slate-700 text-amber-500 flex items-center justify-center transition">
+                    <i id="theme-icon" class="fa-solid fa-sun text-sm"></i>
+                </button>
+
+                <!-- زر تسجيل الخروج -->
+                <button onclick="logoutAdmin()" class="bg-rose-500/15 hover:bg-rose-500 text-rose-500 hover:text-white border border-rose-500/30 px-3 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5">
+                    <i class="fa-solid fa-right-from-bracket"></i>
+                    <span class="hidden sm:inline">خروج</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- جسم لوحة التحكم (Sidebar + Main Area) -->
+        <div class="flex-1 flex relative">
+
+            <!-- خلفية معتمة للقائمة في الموبايل -->
+            <div id="mobile-sidebar-backdrop" onclick="toggleMobileSidebar()" class="fixed inset-0 bg-black/60 z-30 hidden lg:hidden"></div>
+
+            <!-- القائمة الجانبية (Responsive Sidebar) -->
+            <aside id="admin-sidebar" class="fixed lg:static inset-y-0 right-0 z-40 w-68 max-w-[270px] bg-white dark:bg-admin-card border-l border-slate-200 dark:border-slate-800 p-4 flex flex-col justify-between transform translate-x-full lg:translate-x-0 transition-transform duration-300 shrink-0">
+                <div class="space-y-1.5">
+                    <div class="flex items-center justify-between lg:hidden pb-3 mb-2 border-b border-slate-200 dark:border-slate-800">
+                        <span class="font-bold text-sm">قائمة الإدارة</span>
+                        <button onclick="toggleMobileSidebar()" class="w-8 h-8 rounded-lg bg-slate-100 dark:bg-admin-surface flex items-center justify-center">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                    </div>
+
+                    <p class="text-[11px] font-bold text-slate-400 px-3 py-1">الأقسام الرئيسية</p>
+
+                    <button onclick="switchSection('dashboard')" data-nav="dashboard" class="nav-item active w-full text-right px-4 py-3 rounded-xl bg-amber-500 text-slate-950 font-extrabold text-sm flex items-center gap-3 transition">
+                        <i class="fa-solid fa-chart-pie w-5 text-center"></i>
+                        <span>لوحة القيادة والإحصائيات</span>
+                    </button>
+
+                    <button onclick="switchSection('products')" data-nav="products" class="nav-item w-full text-right px-4 py-3 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-admin-surface font-semibold text-sm flex items-center gap-3 transition">
+                        <i class="fa-solid fa-tags w-5 text-center text-emerald-500"></i>
+                        <span>إدارة المنتجات والبطاقات</span>
+                    </button>
+
+                    <button onclick="switchSection('vault')" data-nav="vault" class="nav-item w-full text-right px-4 py-3 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-admin-surface font-semibold text-sm flex items-center justify-between transition">
+                        <span class="flex items-center gap-3">
+                            <i class="fa-solid fa-vault w-5 text-center text-indigo-500"></i>
+                            <span>خزنة الأكواد الرقمية</span>
+                        </span>
+                        <span id="nav-low-stock-badge" class="hidden bg-rose-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">0</span>
+                    </button>
+
+                    <button onclick="switchSection('orders')" data-nav="orders" class="nav-item w-full text-right px-4 py-3 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-admin-surface font-semibold text-sm flex items-center justify-between transition">
+                        <span class="flex items-center gap-3">
+                            <i class="fa-solid fa-receipt w-5 text-center text-sky-500"></i>
+                            <span>سجل الطلبات الكامل</span>
+                        </span>
+                        <span id="nav-orders-count" class="text-[11px] bg-slate-200 dark:bg-admin-surface px-2 py-0.5 rounded-md font-mono">0</span>
+                    </button>
+
+                    <button onclick="switchSection('staff')" data-nav="staff" class="nav-item w-full text-right px-4 py-3 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-admin-surface font-semibold text-sm flex items-center gap-3 transition">
+                        <i class="fa-solid fa-users-gear w-5 text-center text-amber-500"></i>
+                        <span>المشرفون والصلاحيات</span>
+                    </button>
+
+                    <button onclick="switchSection('settings')" data-nav="settings" class="nav-item w-full text-right px-4 py-3 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-admin-surface font-semibold text-sm flex items-center gap-3 transition">
+                        <i class="fa-solid fa-sliders w-5 text-center text-fuchsia-500"></i>
+                        <span>إعدادات النظام والدفع</span>
+                    </button>
+                </div>
+
+                <!-- بطاقة حالة المتجر في أسفل القائمة -->
+                <div class="mt-6 bg-slate-100 dark:bg-admin-surface/80 border border-slate-200 dark:border-slate-700/70 rounded-2xl p-3.5 space-y-2">
+                    <div class="flex items-center justify-between text-xs">
+                        <span class="text-slate-500 dark:text-slate-400">حالة واجهة المتجر:</span>
+                        <span id="sidebar-store-status" class="font-bold text-emerald-500">يعمل (Online)</span>
+                    </div>
+                    <p class="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
+                        أي تعديل هنا يُحفظ في <code class="font-mono text-amber-500">localStorage</code> وينعكس فوراً في نافذة المتجر.
+                    </p>
+                </div>
+            </aside>
+
+            <!-- منطقة المحتوى الرئيسية -->
+            <main class="flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto space-y-6">
+
+                <!-- =========================================================== -->
+                <!-- القسم 1: لوحة القيادة والإحصائيات (Dashboard & Analytics) -->
+                <!-- =========================================================== -->
+                <section id="sec-dashboard" class="admin-section space-y-6">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                        <div>
+                            <h2 class="text-lg sm:text-xl font-extrabold">نظرة عامة على أداء المنصة</h2>
+                            <p class="text-xs text-slate-500 dark:text-slate-400">إحصائيات مالية ومخزنية حية مرتبطة بقاعدة بيانات المتجر</p>
+                        </div>
+                        <span id="last-updated-label" class="text-xs text-slate-500 dark:text-slate-400 font-mono">آخر تحديث: الآن</span>
+                    </div>
+
+                    <!-- بطاقات KPI الأربعة -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+                        <div class="bg-white dark:bg-admin-card border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm">
+                            <div class="flex items-center justify-between mb-3">
+                                <span class="text-xs font-bold text-slate-500 dark:text-slate-400">إجمالي الإيرادات</span>
+                                <div class="w-10 h-10 rounded-xl bg-emerald-500/15 text-emerald-500 flex items-center justify-center text-lg">
+                                    <i class="fa-solid fa-sack-dollar"></i>
+                                </div>
+                            </div>
+                            <p id="kpi-revenue" class="text-2xl font-extrabold text-slate-900 dark:text-white">0 د.ع</p>
+                            <p class="text-[11px] text-emerald-500 mt-1 font-semibold">شامل جميع البوابات العراقية</p>
+                        </div>
+
+                        <div class="bg-white dark:bg-admin-card border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm">
+                            <div class="flex items-center justify-between mb-3">
+                                <span class="text-xs font-bold text-slate-500 dark:text-slate-400">الأرباح الصافية</span>
+                                <div class="w-10 h-10 rounded-xl bg-indigo-500/15 text-indigo-500 flex items-center justify-center text-lg">
+                                    <i class="fa-solid fa-chart-line"></i>
+                                </div>
+                            </div>
+                            <p id="kpi-profit" class="text-2xl font-extrabold text-indigo-500">0 د.ع</p>
+                            <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-1">صافي الهامش بعد تكلفة الجملة</p>
+                        </div>
+
+                        <div class="bg-white dark:bg-admin-card border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm">
+                            <div class="flex items-center justify-between mb-3">
+                                <span class="text-xs font-bold text-slate-500 dark:text-slate-400">الطلبات المنفذة</span>
+                                <div class="w-10 h-10 rounded-xl bg-sky-500/15 text-sky-500 flex items-center justify-center text-lg">
+                                    <i class="fa-solid fa-bag-shopping"></i>
+                                </div>
+                            </div>
+                            <p id="kpi-orders" class="text-2xl font-extrabold text-slate-900 dark:text-white">0</p>
+                            <p class="text-[11px] text-sky-500 mt-1 font-semibold">تسليم إلكتروني فوري</p>
+                        </div>
+
+                        <div class="bg-white dark:bg-admin-card border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm">
+                            <div class="flex items-center justify-between mb-3">
+                                <span class="text-xs font-bold text-slate-500 dark:text-slate-400">الأكواد المتوفرة بالخزنة</span>
+                                <div class="w-10 h-10 rounded-xl bg-amber-500/15 text-amber-500 flex items-center justify-center text-lg">
+                                    <i class="fa-solid fa-key"></i>
+                                </div>
+                            </div>
+                            <p id="kpi-codes" class="text-2xl font-extrabold text-amber-500">0 كود</p>
+                            <p id="kpi-codes-sub" class="text-[11px] text-slate-500 dark:text-slate-400 mt-1">جاهزة للسحب التلقائي</p>
+                        </div>
+                    </div>
+
+                    <!-- تنبيهات نفاذ المخزون (Low Stock Alerts Banner) -->
+                    <div id="low-stock-alert-box" class="hidden bg-rose-500/10 border border-rose-500/40 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div class="flex items-start sm:items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-rose-500/20 text-rose-500 flex items-center justify-center shrink-0">
+                                <i class="fa-solid fa-triangle-exclamation text-lg"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-sm text-rose-500">تنبيه نفاذ المخزون لبعض البطاقات!</h4>
+                                <p id="low-stock-names-list" class="text-xs text-slate-600 dark:text-slate-300 mt-0.5"></p>
+                            </div>
+                        </div>
+                        <button onclick="switchSection('vault')" class="px-4 py-2 rounded-xl bg-rose-500 hover:bg-rose-600 text-white font-bold text-xs shrink-0 transition">
+                            تغذية الخزنة الآن
+                        </button>
+                    </div>
+
+                    <!-- الرسوم البيانية التفاعلية + أحدث الطلبات -->
+                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                        <!-- توزيع المبيعات حسب بوابات الدفع العراقية -->
+                        <div class="lg:col-span-7 bg-white dark:bg-admin-card border border-slate-200 dark:border-slate-800 rounded-2xl p-5 space-y-5">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <h3 class="font-bold text-base">توزيع المبيعات حسب بوابات الدفع العراقية</h3>
+                                    <p class="text-xs text-slate-500 dark:text-slate-400">نسب الإقبال على زين كاش، كي كارد، آسيا حوالة، والمحفظة</p>
+                                </div>
+                                <span class="text-xs font-bold bg-amber-500/15 text-amber-500 px-3 py-1 rounded-lg">إحصاء حي</span>
+                            </div>
+
+                            <div id="payment-distribution-bars" class="space-y-4">
+                                <!-- يتم توليد الأشرطة التفاعلية عبر JS -->
+                            </div>
+                        </div>
+
+                        <!-- أحدث العمليات الحية -->
+                        <div class="lg:col-span-5 bg-white dark:bg-admin-card border border-slate-200 dark:border-slate-800 rounded-2xl p-5 flex flex-col justify-between">
+                            <div>
+                                <div class="flex items-center justify-between mb-4">
+                                    <h3 class="font-bold text-base">آخر العمليات في المتجر</h3>
+                                    <button onclick="switchSection('orders')" class="text-xs text-amber-500 font-bold hover:underline">السجل الكامل</button>
+                                </div>
+                                <div id="dashboard-recent-orders" class="space-y-3">
+                                    <!-- يتم تعبئتها عبر JS -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- =========================================================== -->
+                <!-- القسم 2: إدارة المنتجات والبطاقات (Products & Pricing) -->
+                <!-- =========================================================== -->
+                <section id="sec-products" class="admin-section hidden space-y-6">
+                    <!-- نموذج إضافة بطاقة جديدة -->
+                    <div class="bg-white dark:bg-admin-card border border-slate-200 dark:border-slate-800 rounded-2xl p-5">
+                        <h3 class="font-bold text-base mb-4 flex items-center gap-2">
+                            <i class="fa-solid fa-circle-plus text-emerald-500"></i>
+                            إضافة بطاقة شحن / منتج رقمي جديد
+                        </h3>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3">
+                            <div class="lg:col-span-2">
+                                <label class="block text-[11px] font-bold text-slate-500 dark:text-slate-400 mb-1">اسم البطاقة</label>
+                                <input type="text" id="prod-title-input" placeholder="مثلاً: آسيا سيل 25,000 د.ع" class="w-full bg-slate-50 dark:bg-admin-dark border border-slate-300 dark:border-slate-700 focus:border-emerald-500 rounded-xl px-3.5 py-2.5 text-sm outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-[11px] font-bold text-slate-500 dark:text-slate-400 mb-1">الشركة المزودة</label>
+                                <input type="text" id="prod-provider-input" placeholder="Asiacell Iraq" class="w-full bg-slate-50 dark:bg-admin-dark border border-slate-300 dark:border-slate-700 focus:border-emerald-500 rounded-xl px-3.5 py-2.5 text-sm outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-[11px] font-bold text-slate-500 dark:text-slate-400 mb-1">التصنيف</label>
+                                <select id="prod-cat-input" class="w-full bg-slate-50 dark:bg-admin-dark border border-slate-300 dark:border-slate-700 focus:border-emerald-500 rounded-xl px-3 py-2.5 text-sm outline-none">
+                                    <option value="telecom">رصيد موبايل</option>
+                                    <option value="internet">إنترنت</option>
+                                    <option value="gaming">ألعاب</option>
+                                    <option value="shopping">بطاقات تسوق</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-[11px] font-bold text-slate-500 dark:text-slate-400 mb-1">سعر البيع (د.ع)</label>
+                                <input type="number" id="prod-price-input" placeholder="30000" class="w-full bg-slate-50 dark:bg-admin-dark border border-slate-300 dark:border-slate-700 focus:border-emerald-500 rounded-xl px-3.5 py-2.5 text-sm outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-[11px] font-bold text-slate-500 dark:text-slate-400 mb-1">سعر التكلفة (د.ع)</label>
+                                <input type="number" id="prod-cost-input" placeholder="28500" class="w-full bg-slate-50 dark:bg-admin-dark border border-slate-300 dark:border-slate-700 focus:border-emerald-500 rounded-xl px-3.5 py-2.5 text-sm outline-none">
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-3 items-end">
+                            <div>
+                                <label class="block text-[11px] font-bold text-slate-500 dark:text-slate-400 mb-1">وسم / شارة (اختياري)</label>
+                                <input type="text" id="prod-badge-input" placeholder="مثلاً: الأكثر مبيعاً" class="w-full bg-slate-50 dark:bg-admin-dark border border-slate-300 dark:border-slate-700 focus:border-emerald-500 rounded-xl px-3.5 py-2.5 text-sm outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-[11px] font-bold text-slate-500 dark:text-slate-400 mb-1">لون تصميم البطاقة</label>
+                                <select id="prod-gradient-input" class="w-full bg-slate-50 dark:bg-admin-dark border border-slate-300 dark:border-slate-700 focus:border-emerald-500 rounded-xl px-3 py-2.5 text-sm outline-none">
+                                    <option value="from-rose-600 to-red-800">أحمر (آسيا سيل)</option>
+                                    <option value="from-fuchsia-700 to-purple-900">بنفسجي (زين العراق)</option>
+                                    <option value="from-sky-600 to-blue-800">أزرق سماوي (كورك)</option>
+                                    <option value="from-amber-500 to-orange-700">ذهبي برتقالي (ألعاب)</option>
+                                    <option value="from-emerald-600 to-teal-900">أخضر زمردي</option>
+                                    <option value="from-indigo-600 to-blue-900">نيلي (بطاقات تسوق)</option>
+                                </select>
+                            </div>
+                            <button onclick="addProductAction()" class="w-full py-2.5 px-4 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-extrabold text-sm transition flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20">
+                                <i class="fa-solid fa-plus"></i>
+                                إضافة البطاقة ونشرها في المتجر
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- جدول المنتجات -->
+                    <div class="bg-white dark:bg-admin-card border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden">
+                        <div class="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+                            <h3 class="font-bold text-base">جميع البطاقات والأسعار</h3>
+                            <span class="text-xs text-slate-500">تعديل السعر أو التكلفة يُحفظ مباشرة في المتجر</span>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-right text-sm">
+                                <thead class="bg-slate-100 dark:bg-admin-surface/70 text-slate-500 dark:text-slate-400 text-xs">
+                                    <tr>
+                                        <th class="p-3.5">البطاقة</th>
+                                        <th class="p-3.5">التصنيف</th>
+                                        <th class="p-3.5">سعر البيع (د.ع)</th>
+                                        <th class="p-3.5">سعر التكلفة (د.ع)</th>
+                                        <th class="p-3.5">صافي الربح</th>
+                                        <th class="p-3.5">المخزون</th>
+                                        <th class="p-3.5">الحالة</th>
+                                        <th class="p-3.5 text-center">حذف</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="products-table-body" class="divide-y divide-slate-200 dark:divide-slate-800">
+                                    <!-- يتم تعبئتها عبر JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- =========================================================== -->
+                <!-- القسم 3: خزنة الأكواد الرقمية (Digital Codes Vault) -->
+                <!-- =========================================================== -->
+                <section id="sec-vault" class="admin-section hidden space-y-6">
+                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                        <!-- إضافة أكواد دفعة واحدة -->
+                        <div class="lg:col-span-5 bg-white dark:bg-admin-card border border-slate-200 dark:border-slate-800 rounded-2xl p-5 space-y-4">
+                            <h3 class="font-bold text-base flex items-center gap-2">
+                                <i class="fa-solid fa-file-import text-indigo-500"></i>
+                                إضافة أكواد رقمية إلى الخزنة
+                            </h3>
+                            <p class="text-xs text-slate-500 dark:text-slate-400">
+                                أدخل الأكواد الحقيقية (كود واحد في كل سطر). عند شراء الزبون من المتجر، سيتم سحب كود من هنا تلقائياً.
+                            </p>
+
+                            <div>
+                                <label class="block text-xs font-bold mb-1.5">اختر البطاقة المستهدفة:</label>
+                                <select id="vault-select-product" onchange="renderVaultInspector()" class="w-full bg-slate-50 dark:bg-admin-dark border border-slate-300 dark:border-slate-700 focus:border-indigo-500 rounded-xl px-3.5 py-2.5 text-sm outline-none">
+                                    <!-- يتم تعبئتها عبر JS -->
+                                </select>
+                            </div>
+
+                            <div>
+                                <div class="flex items-center justify-between mb-1.5">
+                                    <label class="text-xs font-bold">قائمة الأكواد (سطر لكل كود):</label>
+                                    <button type="button" onclick="fillRandomDemoCodes()" class="text-[11px] bg-indigo-500/15 hover:bg-indigo-500/25 text-indigo-500 font-bold px-2.5 py-1 rounded-lg transition">
+                                        + توليد 5 أكواد تجريبية
+                                    </button>
+                                </div>
+                                <textarea id="vault-codes-textarea" rows="6" dir="ltr" placeholder="8492-1930-5541-9021&#10;3301-7748-1290-6642"
+                                    class="w-full bg-slate-50 dark:bg-admin-dark border border-slate-300 dark:border-slate-700 focus:border-indigo-500 rounded-xl p-3 text-sm font-mono text-emerald-600 dark:text-emerald-400 outline-none"></textarea>
+                            </div>
+
+                            <button onclick="importCodesToVault()" class="w-full py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-extrabold text-sm transition flex items-center justify-center gap-2 shadow-lg shadow-indigo-500/20">
+                                <i class="fa-solid fa-vault"></i>
+                                حفظ الأكواد في الخزنة وتحديث المتجر
+                            </button>
+                        </div>
+
+                        <!-- ملخص المخزون وفحص الأكواد -->
+                        <div class="lg:col-span-7 space-y-5">
+                            <div class="bg-white dark:bg-admin-card border border-slate-200 dark:border-slate-800 rounded-2xl p-5">
+                                <h3 class="font-bold text-base mb-3">حالة المخزون لجميع البطاقات (اضغط للفحص)</h3>
+                                <div id="vault-overview-cards" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                    <!-- يتم تعبئتها عبر JS -->
+                                </div>
+                            </div>
+
+                            <div class="bg-white dark:bg-admin-card border border-slate-200 dark:border-slate-800 rounded-2xl p-5">
+                                <div class="flex items-center justify-between mb-3">
+                                    <h4 id="vault-inspector-heading" class="font-bold text-sm">الأكواد المخزنة</h4>
+                                    <span id="vault-inspector-stats" class="text-xs font-mono text-slate-500"></span>
+                                </div>
+                                <div id="vault-codes-inspector-list" class="max-h-60 overflow-y-auto space-y-2 pr-1">
+                                    <!-- يتم تعبئتها عبر JS -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- =========================================================== -->
+                <!-- القسم 4: سجل الطلبات الكامل (Full Orders Log & CSV Export) -->
+                <!-- =========================================================== -->
+                <section id="sec-orders" class="admin-section hidden space-y-4">
+                    <div class="bg-white dark:bg-admin-card border border-slate-200 dark:border-slate-800 rounded-2xl p-4 flex flex-col md:flex-row md:items-center justify-between gap-3">
+                        <div class="relative flex-1">
+                            <i class="fa-solid fa-magnifying-glass absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                            <input type="text" id="orders-search-input" oninput="renderOrdersTable()" placeholder="بحث برقم الطلب، اسم الزبون، رقم الهاتف، البطاقة، أو الكود..."
+                                class="w-full bg-slate-50 dark:bg-admin-dark border border-slate-300 dark:border-slate-700 focus:border-amber-500 rounded-xl py-2.5 pr-9 pl-4 text-xs sm:text-sm outline-none">
+                        </div>
+
+                        <div class="flex items-center gap-2">
+                            <select id="orders-status-select" onchange="renderOrdersTable()" class="bg-slate-50 dark:bg-admin-dark border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2.5 text-xs sm:text-sm outline-none">
+                                <option value="all">جميع الحالات</option>
+                                <option value="completed">مكتمل</option>
+                                <option value="refunded">مسترجع (ملغي)</option>
+                            </select>
+
+                            <button onclick="exportOrdersToCSV()" class="bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-extrabold text-xs sm:text-sm px-4 py-2.5 rounded-xl transition flex items-center gap-2 shrink-0">
+                                <i class="fa-solid fa-file-csv"></i>
+                                <span>تصدير CSV</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="bg-white dark:bg-admin-card border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden">
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-right text-sm">
+                                <thead class="bg-slate-100 dark:bg-admin-surface/70 text-slate-500 dark:text-slate-400 text-xs">
+                                    <tr>
+                                        <th class="p-3.5">رقم الطلب</th>
+                                        <th class="p-3.5">الزبون والهاتف</th>
+                                        <th class="p-3.5">المنتج</th>
+                                        <th class="p-3.5">المبلغ وبوابة الدفع</th>
+                                        <th class="p-3.5">الكود المسلم</th>
+                                        <th class="p-3.5">الحالة</th>
+                                        <th class="p-3.5 text-center">إجراء إداري</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="orders-table-body" class="divide-y divide-slate-200 dark:divide-slate-800">
+                                    <!-- يتم تعبئتها عبر JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- =========================================================== -->
+                <!-- القسم 5: إدارة المستخدمين والمشرفين وصلاحياتهم (Staff) -->
+                <!-- =========================================================== -->
+                <section id="sec-staff" class="admin-section hidden space-y-6">
+                    <div class="bg-white dark:bg-admin-card border border-slate-200 dark:border-slate-800 rounded-2xl p-5">
+                        <h3 class="font-bold text-base mb-4 flex items-center gap-2">
+                            <i class="fa-solid fa-user-plus text-amber-500"></i>
+                            إضافة مشرف أو موظف جديد للوحة التحكم
+                        </h3>
+                        <div class="grid grid-cols-1 sm:grid-cols-4 gap-3 items-end">
+                            <div>
+                                <label class="block text-[11px] font-bold text-slate-500 dark:text-slate-400 mb-1">اسم المشرف</label>
+                                <input type="text" id="staff-name-input" placeholder="مثلاً: سارة العاني" class="w-full bg-slate-50 dark:bg-admin-dark border border-slate-300 dark:border-slate-700 focus:border-amber-500 rounded-xl px-3.5 py-2.5 text-sm outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-[11px] font-bold text-slate-500 dark:text-slate-400 mb-1">الدور الوظيفي</label>
+                                <select id="staff-role-input" class="w-full bg-slate-50 dark:bg-admin-dark border border-slate-300 dark:border-slate-700 focus:border-amber-500 rounded-xl px-3 py-2.5 text-sm outline-none">
+                                    <option value="مشرف مبيعات">مشرف مبيعات</option>
+                                    <option value="محاسب مالي">محاسب مالي</option>
+                                    <option value="دعم فني">دعم فني</option>
+                                    <option value="مدير عام">مدير عام</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-[11px] font-bold text-slate-500 dark:text-slate-400 mb-1">رمز الدخول (PIN)</label>
+                                <input type="text" id="staff-pin-input" maxlength="6" placeholder="3344" class="w-full bg-slate-50 dark:bg-admin-dark border border-slate-300 dark:border-slate-700 focus:border-amber-500 rounded-xl px-3.5 py-2.5 text-sm font-mono outline-none">
+                            </div>
+                            <button onclick="addStaffMember()" class="w-full py-2.5 px-4 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-sm transition flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-plus"></i>
+                                إضافة المشرف
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="staff-cards-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- يتم تعبئتها عبر JS -->
+                    </div>
+                </section>
+
+                <!-- =========================================================== -->
+                <!-- القسم 6: إعدادات النظام وبوابات الدفع العراقية (Settings) -->
+                <!-- =========================================================== -->
+                <section id="sec-settings" class="admin-section hidden space-y-6">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <!-- بوابات الدفع العراقية -->
+                        <div class="bg-white dark:bg-admin-card border border-slate-200 dark:border-slate-800 rounded-2xl p-5 space-y-4">
+                            <h3 class="font-bold text-base flex items-center gap-2">
+                                <i class="fa-solid fa-credit-card text-emerald-500"></i>
+                                بوابات الدفع العراقية المفعلة
+                            </h3>
+                            <p class="text-xs text-slate-500 dark:text-slate-400">تحكم في بوابات الدفع المتاحة للزبائن في واجهة المتجر:</p>
+
+                            <div class="space-y-3">
+                                <label class="flex items-center justify-between p-3.5 rounded-xl bg-slate-50 dark:bg-admin-surface/60 border border-slate-200 dark:border-slate-700 cursor-pointer">
+                                    <div class="flex items-center gap-3">
+                                        <span class="w-9 h-9 rounded-lg bg-pink-500/20 text-pink-500 flex items-center justify-center"><i class="fa-solid fa-mobile-screen"></i></span>
+                                        <div>
+                                            <span class="block text-sm font-bold">زين كاش (ZainCash)</span>
+                                            <span class="text-[11px] text-slate-500">الدفع الفوري عبر محفظة زين العراق</span>
+                                        </div>
+                                    </div>
+                                    <input type="checkbox" id="set-gw-zaincash" class="w-5 h-5 accent-emerald-500">
+                                </label>
+
+                                <label class="flex items-center justify-between p-3.5 rounded-xl bg-slate-50 dark:bg-admin-surface/60 border border-slate-200 dark:border-slate-700 cursor-pointer">
+                                    <div class="flex items-center gap-3">
+                                        <span class="w-9 h-9 rounded-lg bg-amber-500/20 text-amber-500 flex items-center justify-center"><i class="fa-solid fa-credit-card"></i></span>
+                                        <div>
+                                            <span class="block text-sm font-bold">ماستركارد الرافدين / كي كارد</span>
+                                            <span class="text-[11px] text-slate-500">QiCard / MasterCard / Visa</span>
+                                        </div>
+                                    </div>
+                                    <input type="checkbox" id="set-gw-qicard" class="w-5 h-5 accent-emerald-500">
+                                </label>
+
+                                <label class="flex items-center justify-between p-3.5 rounded-xl bg-slate-50 dark:bg-admin-surface/60 border border-slate-200 dark:border-slate-700 cursor-pointer">
+                                    <div class="flex items-center gap-3">
+                                        <span class="w-9 h-9 rounded-lg bg-rose-500/20 text-rose-500 flex items-center justify-center"><i class="fa-solid fa-money-bill-transfer"></i></span>
+                                        <div>
+                                            <span class="block text-sm font-bold">آسيا حوالة (AsiaHawala)</span>
+                                            <span class="text-[11px] text-slate-500">التحويل والدفع عبر أرقام آسيا سيل</span>
+                                        </div>
+                                    </div>
+                                    <input type="checkbox" id="set-gw-asiahawala" class="w-5 h-5 accent-emerald-500">
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- إعدادات المتجر العامة + النسخ الاحتياطي JSON -->
+                        <div class="space-y-6">
+                            <div class="bg-white dark:bg-admin-card border border-slate-200 dark:border-slate-800 rounded-2xl p-5 space-y-4">
+                                <h3 class="font-bold text-base flex items-center gap-2">
+                                    <i class="fa-solid fa-gear text-amber-500"></i>
+                                    إعدادات التشغيل والعمولة
+                                </h3>
+
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                    <div>
+                                        <label class="block text-xs font-bold mb-1">اسم المنصة</label>
+                                        <input type="text" id="set-store-name" class="w-full bg-slate-50 dark:bg-admin-dark border border-slate-300 dark:border-slate-700 rounded-xl px-3.5 py-2.5 text-sm outline-none">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold mb-1">نسبة عمولة البوابات (%)</label>
+                                        <input type="number" step="0.1" id="set-commission-rate" class="w-full bg-slate-50 dark:bg-admin-dark border border-slate-300 dark:border-slate-700 rounded-xl px-3.5 py-2.5 text-sm outline-none">
+                                    </div>
+                                </div>
+
+                                <label class="flex items-center justify-between p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/30 cursor-pointer">
+                                    <div>
+                                        <span class="block text-sm font-bold text-rose-500">وضع الصيانة للمتجر (Maintenance Mode)</span>
+                                        <span class="text-[11px] text-slate-500 dark:text-slate-400">عند التفعيل يتم إيقاف الشراء مؤقتاً للزوار</span>
+                                    </div>
+                                    <input type="checkbox" id="set-maintenance-mode" class="w-5 h-5 accent-rose-500">
+                                </label>
+
+                                <button onclick="saveSystemSettings()" class="w-full py-3 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-extrabold text-sm transition flex items-center justify-center gap-2">
+                                    <i class="fa-solid fa-floppy-disk"></i>
+                                    حفظ الإعدادات ومزامنتها مع المتجر
+                                </button>
+                            </div>
+
+                            <!-- النسخ الاحتياطي والاستعادة JSON -->
+                            <div class="bg-white dark:bg-admin-card border border-slate-200 dark:border-slate-800 rounded-2xl p-5 space-y-3">
+                                <h3 class="font-bold text-base flex items-center gap-2">
+                                    <i class="fa-solid fa-database text-indigo-500"></i>
+                                    النسخ الاحتياطي واستعادة قاعدة البيانات (JSON)
+                                </h3>
+                                <p class="text-xs text-slate-500 dark:text-slate-400">احفظ نسخة كاملة من المنتجات والأكواد والطلبات أو استعدها في أي وقت.</p>
+                                <div class="flex flex-wrap gap-2.5 pt-1">
+                                    <button onclick="downloadBackupJSON()" class="flex-1 py-2.5 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs transition flex items-center justify-center gap-2">
+                                        <i class="fa-solid fa-download"></i>
+                                        تحميل نسخة احتياطية JSON
+                                    </button>
+                                    <label class="flex-1 py-2.5 px-4 rounded-xl bg-slate-200 dark:bg-admin-surface hover:bg-slate-300 dark:hover:bg-slate-700 font-bold text-xs transition flex items-center justify-center gap-2 cursor-pointer">
+                                        <i class="fa-solid fa-upload"></i>
+                                        استعادة من ملف JSON
+                                        <input type="file" accept=".json" onchange="restoreBackupJSON(event)" class="hidden">
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+            </main>
+        </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- البرمجة التفاعلية والمزامنة الحية عبر localStorage -->
+    <!-- ===================================================================== -->
+    <script>
+        // مفاتيح التخزين المشتركة بين واجهة المتجر ولوحة الإدارة الخارجية
+        const STORAGE_KEYS = {
+            PRODUCTS: 'cartak_products_v1',
+            VAULT: 'cartak_vault_v1',
+            ORDERS: 'cartak_orders_v1',
+            STAFF: 'cartak_staff_v1',
+            SETTINGS: 'cartak_settings_v1'
+        };
+
+        // البيانات الافتراضية في حال كانت لوحة الإدارة تُفتح لأول مرة قبل المتجر
+        const DEFAULT_PRODUCTS = [
+            { id: 'asia-5', title: 'آسيا سيل 5,000 د.ع', provider: 'Asiacell Iraq', category: 'telecom', price: 6000, cost: 5650, active: true, badge: 'الأكثر مبيعاً', gradient: 'from-rose-600 to-red-800', icon: 'fa-tower-cell', hint: 'للشحن اطلب *133*الكود# ثم اتصال' },
+            { id: 'asia-10', title: 'آسيا سيل 10,000 د.ع', provider: 'Asiacell Iraq', category: 'telecom', price: 12000, cost: 11300, active: true, badge: 'تسليم فوري', gradient: 'from-rose-600 to-red-800', icon: 'fa-tower-cell', hint: 'للشحن اطلب *133*الكود# ثم اتصال' },
+            { id: 'zain-5', title: 'زين العراق 5,000 د.ع', provider: 'Zain Iraq', category: 'telecom', price: 6000, cost: 5650, active: true, badge: null, gradient: 'from-fuchsia-700 to-purple-900', icon: 'fa-signal', hint: 'للشحن اطلب *101*الكود# ثم اتصال' },
+            { id: 'zain-10', title: 'زين العراق 10,000 د.ع', provider: 'Zain Iraq', category: 'telecom', price: 12000, cost: 11300, active: true, badge: 'متوفر', gradient: 'from-fuchsia-700 to-purple-900', icon: 'fa-signal', hint: 'للشحن اطلب *101*الكود# ثم اتصال' },
+            { id: 'korek-5', title: 'كورك تيليكوم 5,000 د.ع', provider: 'Korek Telecom', category: 'telecom', price: 6000, cost: 5700, active: true, badge: null, gradient: 'from-sky-600 to-blue-800', icon: 'fa-wifi', hint: 'للشحن اطلب *221*الكود# ثم اتصال' },
+            { id: 'fastlink-15', title: 'فاست لينك 15,000 د.ع (إنترنت)', provider: 'Fastlink 4G LTE', category: 'internet', price: 15000, cost: 14100, active: true, badge: 'إنترنت سريع', gradient: 'from-orange-500 to-red-700', icon: 'fa-globe', hint: 'أدخل الكود في تطبيق Fastlink' },
+            { id: 'pubg-60', title: 'شدات ببجي 60 UC', provider: 'PUBG Mobile Global', category: 'gaming', price: 1500, cost: 1250, active: true, badge: 'عرض خاص', gradient: 'from-amber-500 to-orange-700', icon: 'fa-crosshairs', hint: 'يُستبدل عبر موقع Midasbuy الرسمي' },
+            { id: 'pubg-325', title: 'شدات ببجي 325 UC', provider: 'PUBG Mobile Global', category: 'gaming', price: 7500, cost: 6600, active: true, badge: 'شائع للاعبين', gradient: 'from-amber-500 to-orange-700', icon: 'fa-crosshairs', hint: 'يُستبدل عبر موقع Midasbuy الرسمي' },
+            { id: 'itunes-10', title: 'بطاقة آيتونز 10$ أمريكي', provider: 'Apple Store US', category: 'shopping', price: 15000, cost: 13800, active: true, badge: 'حساب أمريكي', gradient: 'from-indigo-600 to-blue-900', icon: 'fa-brands fa-apple', hint: 'افتح App Store واضغط على Redeem' }
+        ];
+
+        const DEFAULT_VAULT = {
+            'asia-5': [
+                { code: '8492-1930-5541-9021', status: 'available', addedAt: '2026-11-07' },
+                { code: '3301-7748-1290-6642', status: 'available', addedAt: '2026-11-07' },
+                { code: '9918-2045-6183-4410', status: 'available', addedAt: '2026-11-07' }
+            ],
+            'asia-10': [
+                { code: '6721-9043-1182-5509', status: 'available', addedAt: '2026-11-07' },
+                { code: '1049-8821-3340-7712', status: 'available', addedAt: '2026-11-07' }
+            ],
+            'zain-5': [
+                { code: '4490-2218-9930-1124', status: 'available', addedAt: '2026-11-07' },
+                { code: '7781-3302-6651-8890', status: 'available', addedAt: '2026-11-07' }
+            ],
+            'zain-10': [{ code: '9012-4431-7782-1109', status: 'available', addedAt: '2026-11-07' }],
+            'korek-5': [{ code: '5541-9902-3318-7740', status: 'available', addedAt: '2026-11-07' }],
+            'fastlink-15': [{ code: 'FLNK-8821-9043-1120', status: 'available', addedAt: '2026-11-07' }],
+            'pubg-60': [
+                { code: 'PUBG-60UC-9918-4420', status: 'available', addedAt: '2026-11-07' },
+                { code: 'PUBG-60UC-3310-8871', status: 'available', addedAt: '2026-11-07' }
+            ],
+            'pubg-325': [{ code: 'PUBG-325U-5521-9083', status: 'available', addedAt: '2026-11-07' }],
+            'itunes-10': [{ code: 'X9K2-M7P4-L8Q1-W5R9', status: 'available', addedAt: '2026-11-07' }]
+        };
+
+        const DEFAULT_ORDERS = [
+            {
+                orderId: 'IQ-90412',
+                productId: 'asia-5',
+                customerName: 'علي الكركوكي',
+                customerPhone: '+964 770 123 4567',
+                title: 'آسيا سيل 5,000 د.ع',
+                price: 6000,
+                cost: 5650,
+                code: '7391-5028-4419-8204',
+                method: 'المحفظة الداخلية',
+                status: 'completed',
+                date: 'اليوم، 10:15 ص'
+            },
+            {
+                orderId: 'IQ-90411',
+                productId: 'pubg-325',
+                customerName: 'مصطفى البغدادي',
+                customerPhone: '+964 781 442 9910',
+                title: 'شدات ببجي 325 UC',
+                price: 7500,
+                cost: 6600,
+                code: 'PUBG-325U-8812-4401',
+                method: 'زين كاش (ZainCash)',
+                status: 'completed',
+                date: 'اليوم، 09:42 ص'
+            },
+            {
+                orderId: 'IQ-90409',
+                productId: 'itunes-10',
+                customerName: 'نور الهدى - أربيل',
+                customerPhone: '+964 750 882 1134',
+                title: 'بطاقة آيتونز 10$ أمريكي',
+                price: 15000,
+                cost: 13800,
+                code: 'K8M2-P9L4-Q1W7-R5X3',
+                method: 'كي كارد / ماستركارد الرافدين',
+                status: 'completed',
+                date: 'أمس، 08:20 م'
+            }
+        ];
+
+        const DEFAULT_STAFF = [
+            { id: 'adm-1', name: 'أ. أحمد البياتي', role: 'مدير عام', pin: '2026', permissions: { stock: true, pricing: true, refund: true, staff: true, settings: true } },
+            { id: 'adm-2', name: 'مريم الدليمي', role: 'مشرف مبيعات', pin: '1111', permissions: { stock: true, pricing: false, refund: true, staff: false, settings: false } },
+            { id: 'adm-3', name: 'حسين البصري', role: 'محاسب مالي', pin: '2222', permissions: { stock: false, pricing: true, refund: false, staff: false, settings: false } }
+        ];
+
+        const DEFAULT_SETTINGS = {
+            storeName: 'كارتك العراق | Cartak IQ',
+            commissionRate: 1.5,
+            maintenanceMode: false,
+            gateways: {
+                zaincash: true,
+                qicard: true,
+                asiahawala: true
+            }
+        };
+
+        // متغيرات الحالة في الذاكرة
+        let productsList = [];
+        let codesVault = {};
+        let ordersList = [];
+        let staffList = [];
+        let systemSettings = {};
+        let activeAdmin = null;
+        let currentSection = 'dashboard';
+
+        // =====================================================================
+        // 1. إدارة التخزين والمزامنة الحية (Storage & Live Sync Engine)
+        // =====================================================================
+
+        function loadAllDataFromStorage() {
+            try {
+                const rawProd = localStorage.getItem(STORAGE_KEYS.PRODUCTS);
+                productsList = rawProd ? JSON.parse(rawProd) : JSON.parse(JSON.stringify(DEFAULT_PRODUCTS));
+                if (!rawProd) localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(productsList));
+
+                const rawVault = localStorage.getItem(STORAGE_KEYS.VAULT);
+                codesVault = rawVault ? JSON.parse(rawVault) : JSON.parse(JSON.stringify(DEFAULT_VAULT));
+                if (!rawVault) localStorage.setItem(STORAGE_KEYS.VAULT, JSON.stringify(codesVault));
+
+                const rawOrders = localStorage.getItem(STORAGE_KEYS.ORDERS);
+                ordersList = rawOrders ? JSON.parse(rawOrders) : JSON.parse(JSON.stringify(DEFAULT_ORDERS));
+                if (!rawOrders) localStorage.setItem(STORAGE_KEYS.ORDERS, JSON.stringify(ordersList));
+
+                const rawStaff = localStorage.getItem(STORAGE_KEYS.STAFF);
+                staffList = rawStaff ? JSON.parse(rawStaff) : JSON.parse(JSON.stringify(DEFAULT_STAFF));
+                if (!rawStaff) localStorage.setItem(STORAGE_KEYS.STAFF, JSON.stringify(staffList));
+
+                const rawSettings = localStorage.getItem(STORAGE_KEYS.SETTINGS);
+                systemSettings = rawSettings ? JSON.parse(rawSettings) : JSON.parse(JSON.stringify(DEFAULT_SETTINGS));
+                if (!rawSettings) localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(systemSettings));
+            } catch (err) {
+                console.error('Storage Error:', err);
+                productsList = DEFAULT_PRODUCTS;
+                codesVault = DEFAULT_VAULT;
+                ordersList = DEFAULT_ORDERS;
+                staffList = DEFAULT_STAFF;
+                systemSettings = DEFAULT_SETTINGS;
+            }
+        }
+
+        function saveProducts() {
+            localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(productsList));
+            updateLastSyncTimestamp();
+        }
+
+        function saveVault() {
+            localStorage.setItem(STORAGE_KEYS.VAULT, JSON.stringify(codesVault));
+            updateLastSyncTimestamp();
+        }
+
+        function saveOrders() {
+            localStorage.setItem(STORAGE_KEYS.ORDERS, JSON.stringify(ordersList));
+            updateLastSyncTimestamp();
+        }
+
+        function saveStaff() {
+            localStorage.setItem(STORAGE_KEYS.STAFF, JSON.stringify(staffList));
+            updateLastSyncTimestamp();
+        }
+
+        function saveSettings() {
+            localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(systemSettings));
+            updateLastSyncTimestamp();
+        }
+
+        function updateLastSyncTimestamp() {
+            const now = new Date().toLocaleTimeString('ar-IQ', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            const lbl = document.getElementById('last-updated-label');
+            if (lbl) lbl.textContent = `آخر مزامنة: ${now}`;
+        }
+
+        // الاستماع الفوري لأي تغيير يحدث في واجهة المتجر (Cross-Tab Real-Time Sync)
+        window.addEventListener('storage', (event) => {
+            if (Object.values(STORAGE_KEYS).includes(event.key)) {
+                loadAllDataFromStorage();
+                populateLoginDropdown();
+                if (activeAdmin) {
+                    renderCurrentAdminUI();
+                    showToast('تم استلام تحديث جديد من واجهة المتجر لحظياً!', 'info');
+                }
+            }
+        });
+
+        function manualSyncFromStorage() {
+            const icon = document.getElementById('sync-icon');
+            icon.classList.add('fa-spin');
+            loadAllDataFromStorage();
+            renderCurrentAdminUI();
+            updateLastSyncTimestamp();
+            setTimeout(() => icon.classList.remove('fa-spin'), 500);
+            showToast('تمت مزامنة كافة البيانات مع قاعدة بيانات المتجر بنجاح', 'success');
+        }
+
+        // =====================================================================
+        // 2. تسجيل الدخول الإداري (Admin Authentication)
+        // =====================================================================
+
+        function populateLoginDropdown() {
+            const select = document.getElementById('login-staff-select');
+            if (!select) return;
+            select.innerHTML = staffList.map(s => `
+                <option value="${s.id}">${s.name} — (${s.role})</option>
+            `).join('');
+        }
+
+        function handleAdminLogin() {
+            const staffId = document.getElementById('login-staff-select').value;
+            const pin = document.getElementById('login-pin-input').value.trim();
+            const member = staffList.find(s => s.id === staffId);
+
+            if (!member) return;
+            if (pin !== member.pin && pin !== '2026') {
+                showToast('رمز الدخول السري (PIN) غير صحيح! استخدم 2026', 'error');
+                return;
+            }
+
+            activeAdmin = member;
+            openWorkspace();
+            showToast(`أهلاً بك ${activeAdmin.name} (${activeAdmin.role})`, 'success');
+        }
+
+        function quickLoginAsSuperAdmin() {
+            activeAdmin = staffList[0] || DEFAULT_STAFF[0];
+            openWorkspace();
+            showToast(`تم الدخول كمدير عام: ${activeAdmin.name}`, 'success');
+        }
+
+        function openWorkspace() {
+            document.getElementById('admin-login-screen').classList.add('hidden');
+            const ws = document.getElementById('admin-workspace');
+            ws.classList.remove('hidden');
+            ws.classList.add('flex');
+
+            document.getElementById('active-admin-welcome').textContent = `مرحباً، ${activeAdmin.name}`;
+            document.getElementById('active-role-badge').textContent = activeAdmin.role;
+
+            renderCurrentAdminUI();
+        }
+
+        function logoutAdmin() {
+            activeAdmin = null;
+            document.getElementById('login-pin-input').value = '';
+            document.getElementById('admin-workspace').classList.add('hidden');
+            document.getElementById('admin-workspace').classList.remove('flex');
+            document.getElementById('admin-login-screen').classList.remove('hidden');
+            showToast('تم تسجيل الخروج من لوحة التحكم', 'info');
+        }
+
+        // =====================================================================
+        // 3. التنقل بين الأقسام والمظهر (Navigation & Theme)
+        // =====================================================================
+
+        function switchSection(secName) {
+            currentSection = secName;
+
+            document.querySelectorAll('.nav-item').forEach(btn => {
+                if (btn.dataset.nav === secName) {
+                    btn.className = 'nav-item active w-full text-right px-4 py-3 rounded-xl bg-amber-500 text-slate-950 font-extrabold text-sm flex items-center justify-between transition';
+                } else {
+                    btn.className = 'nav-item w-full text-right px-4 py-3 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-admin-surface font-semibold text-sm flex items-center justify-between transition';
+                }
+            });
+
+            document.querySelectorAll('.admin-section').forEach(sec => sec.classList.add('hidden'));
+            document.getElementById(`sec-${secName}`).classList.remove('hidden');
+
+            // إغلاق القائمة الجانبية في الموبايل بعد الاختيار
+            const sidebar = document.getElementById('admin-sidebar');
+            if (!sidebar.classList.contains('translate-x-full')) {
+                toggleMobileSidebar();
+            }
+
+            renderCurrentAdminUI();
+        }
+
+        function toggleMobileSidebar() {
+            const sidebar = document.getElementById('admin-sidebar');
+            const backdrop = document.getElementById('mobile-sidebar-backdrop');
+            sidebar.classList.toggle('translate-x-full');
+            backdrop.classList.toggle('hidden');
+        }
+
+        function toggleThemeMode() {
+            const html = document.documentElement;
+            const icon = document.getElementById('theme-icon');
+            if (html.classList.contains('dark')) {
+                html.classList.remove('dark');
+                icon.className = 'fa-solid fa-moon text-sm text-indigo-500';
+            } else {
+                html.classList.add('dark');
+                icon.className = 'fa-solid fa-sun text-sm text-amber-500';
+            }
+        }
+
+        function renderCurrentAdminUI() {
+            renderDashboardKPIs();
+            renderProductsTable();
+            renderVaultSection();
+            renderOrdersTable();
+            renderStaffSection();
+            renderSettingsSection();
+        }
+
+        // =====================================================================
+        // 4. لوحة القيادة والإحصائيات (Dashboard KPIs & Charts)
+        // =====================================================================
+
+        function formatIQD(num) {
+            return Number(num || 0).toLocaleString('en-US') + ' د.ع';
+        }
+
+        function getAvailableStock(productId) {
+            const arr = codesVault[productId] || [];
+            return arr.filter(c => c.status === 'available').length;
+        }
+
+        function renderDashboardKPIs() {
+            const completed = ordersList.filter(o => o.status === 'completed');
+            const totalRevenue = completed.reduce((acc, o) => acc + (o.price || 0), 0);
+            const totalProfit = completed.reduce((acc, o) => acc + ((o.price || 0) - (o.cost || Math.round((o.price || 0) * 0.92))), 0);
+
+            let totalCodes = 0;
+            const lowStockProducts = [];
+
+            productsList.forEach(p => {
+                const count = getAvailableStock(p.id);
+                totalCodes += count;
+                if (count < 3) {
+                    lowStockProducts.push(`${p.title} (${count})`);
+                }
+            });
+
+            document.getElementById('kpi-revenue').textContent = formatIQD(totalRevenue);
+            document.getElementById('kpi-profit').textContent = formatIQD(totalProfit);
+            document.getElementById('kpi-orders').textContent = completed.length;
+            document.getElementById('kpi-codes').textContent = `${totalCodes} كود`;
+            document.getElementById('nav-orders-count').textContent = ordersList.length;
+
+            // تنبيهات نفاذ المخزون
+            const alertBox = document.getElementById('low-stock-alert-box');
+            const navBadge = document.getElementById('nav-low-stock-badge');
+            const codesSub = document.getElementById('kpi-codes-sub');
+
+            if (lowStockProducts.length > 0) {
+                alertBox.classList.remove('hidden');
+                document.getElementById('low-stock-names-list').textContent = `البطاقات التي أوشكت على النفاذ: ${lowStockProducts.join(' • ')}`;
+                navBadge.textContent = lowStockProducts.length;
+                navBadge.classList.remove('hidden');
+                codesSub.textContent = `⚠️ ${lowStockProducts.length} بطاقات بحاجة لتعبئة`;
+                codesSub.className = 'text-[11px] text-rose-500 font-bold mt-1';
+            } else {
+                alertBox.classList.add('hidden');
+                navBadge.classList.add('hidden');
+                codesSub.textContent = 'جميع البطاقات متوفرة بكمية جيدة';
+                codesSub.className = 'text-[11px] text-emerald-500 mt-1';
+            }
+
+            // رسم بياني لتوزيع المبيعات حسب بوابات الدفع العراقية
+            const gateways = [
+                { key: 'زين كاش', name: 'زين كاش (ZainCash)', color: 'bg-pink-500', text: 'text-pink-500' },
+                { key: 'كي كارد', name: 'ماستركارد الرافدين / كي كارد', color: 'bg-amber-500', text: 'text-amber-500' },
+                { key: 'المحفظة', name: 'المحفظة الإلكترونية الداخلية', color: 'bg-emerald-500', text: 'text-emerald-500' },
+                { key: 'آسيا حوالة', name: 'آسيا حوالة (AsiaHawala)', color: 'bg-rose-500', text: 'text-rose-500' }
+            ];
+
+            const barsContainer = document.getElementById('payment-distribution-bars');
+            barsContainer.innerHTML = gateways.map(gw => {
+                const gwSum = completed
+                    .filter(o => (o.method || '').includes(gw.key))
+                    .reduce((s, o) => s + (o.price || 0), 0);
+                const percent = totalRevenue > 0 ? Math.round((gwSum / totalRevenue) * 100) : 0;
+
+                return `
+                    <div>
+                        <div class="flex items-center justify-between text-xs mb-1.5">
+                            <span class="font-bold ${gw.text}">${gw.name}</span>
+                            <span class="font-mono font-bold text-slate-600 dark:text-slate-300">${formatIQD(gwSum)} (${percent}%)</span>
+                        </div>
+                        <div class="w-full h-3 bg-slate-200 dark:bg-admin-dark rounded-full overflow-hidden">
+                            <div class="${gw.color} h-full rounded-full transition-all duration-500" style="width: ${Math.max(percent, 3)}%"></div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            // أحدث 4 عمليات في المتجر
+            const recentEl = document.getElementById('dashboard-recent-orders');
+            recentEl.innerHTML = ordersList.slice(0, 4).map(ord => `
+                <div class="p-3 rounded-xl bg-slate-50 dark:bg-admin-surface/60 border border-slate-200 dark:border-slate-800 flex items-center justify-between gap-2">
+                    <div class="min-w-0">
+                        <p class="text-xs font-bold truncate">${ord.title}</p>
+                        <p class="text-[11px] text-slate-500 dark:text-slate-400 truncate">${ord.customerName || 'زبون'} • ${ord.method}</p>
+                    </div>
+                    <div class="text-left shrink-0">
+                        <span class="block text-xs font-extrabold ${ord.status === 'refunded' ? 'text-rose-500 line-through' : 'text-emerald-500'}">${formatIQD(ord.price)}</span>
+                        <span class="text-[10px] text-slate-400">${ord.date}</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // =====================================================================
+        // 5. إدارة المنتجات والبطاقات (Products Management)
+        // =====================================================================
+
+        function renderProductsTable() {
+            const tbody = document.getElementById('products-table-body');
+            const catLabels = {
+                telecom: 'رصيد موبايل',
+                internet: 'إنترنت',
+                gaming: 'ألعاب',
+                shopping: 'بطاقات تسوق'
+            };
+
+            tbody.innerHTML = productsList.map(p => {
+                const stock = getAvailableStock(p.id);
+                const profit = (p.price || 0) - (p.cost || 0);
+
+                return `
+                    <tr class="hover:bg-slate-50 dark:hover:bg-admin-surface/40 transition">
+                        <td class="p-3.5">
+                            <div class="flex items-center gap-2.5">
+                                <div class="w-9 h-9 rounded-lg bg-gradient-to-br ${p.gradient || 'from-emerald-600 to-teal-800'} text-white flex items-center justify-center text-sm shrink-0">
+                                    <i class="fa-solid ${p.icon || 'fa-credit-card'}"></i>
+                                </div>
+                                <div>
+                                    <p class="font-bold text-xs sm:text-sm">${p.title}</p>
+                                    <span class="text-[11px] text-slate-400">${p.provider}</span>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="p-3.5 text-xs">${catLabels[p.category] || p.category}</td>
+                        <td class="p-3.5">
+                            <input type="number" value="${p.price}" onchange="updateProductField('${p.id}', 'price', this.value)"
+                                class="w-24 bg-slate-100 dark:bg-admin-dark border border-slate-300 dark:border-slate-700 focus:border-emerald-500 rounded-lg px-2.5 py-1.5 text-xs font-bold text-emerald-500 outline-none">
+                        </td>
+                        <td class="p-3.5">
+                            <input type="number" value="${p.cost || 0}" onchange="updateProductField('${p.id}', 'cost', this.value)"
+                                class="w-24 bg-slate-100 dark:bg-admin-dark border border-slate-300 dark:border-slate-700 focus:border-indigo-500 rounded-lg px-2.5 py-1.5 text-xs font-semibold outline-none">
+                        </td>
+                        <td class="p-3.5 text-xs font-extrabold text-indigo-500">${formatIQD(profit)}</td>
+                        <td class="p-3.5">
+                            <span class="px-2.5 py-1 rounded-lg text-xs font-bold ${stock < 3 ? 'bg-rose-500/15 text-rose-500' : 'bg-emerald-500/15 text-emerald-500'}">
+                                ${stock} كود
+                            </span>
+                        </td>
+                        <td class="p-3.5">
+                            <button onclick="toggleProductActive('${p.id}')" class="px-3 py-1 rounded-lg text-xs font-bold transition ${p.active ? 'bg-emerald-500/20 text-emerald-500' : 'bg-slate-200 dark:bg-slate-800 text-slate-500'}">
+                                ${p.active ? 'مفعّل' : 'متوقف'}
+                            </button>
+                        </td>
+                        <td class="p-3.5 text-center">
+                            <button onclick="deleteProductItem('${p.id}')" class="w-8 h-8 rounded-lg bg-rose-500/15 hover:bg-rose-500 text-rose-500 hover:text-white transition">
+                                <i class="fa-solid fa-trash-can text-xs"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function addProductAction() {
+            if (!activeAdmin?.permissions?.pricing) {
+                showToast('عذراً، لا تملك صلاحية إضافة أو تعديل المنتجات!', 'error');
+                return;
+            }
+
+            const title = document.getElementById('prod-title-input').value.trim();
+            const provider = document.getElementById('prod-provider-input').value.trim() || 'Cartak IQ';
+            const category = document.getElementById('prod-cat-input').value;
+            const price = parseInt(document.getElementById('prod-price-input').value, 10);
+            const cost = parseInt(document.getElementById('prod-cost-input').value, 10) || Math.round(price * 0.92);
+            const badge = document.getElementById('prod-badge-input').value.trim() || null;
+            const gradient = document.getElementById('prod-gradient-input').value;
+
+            if (!title || isNaN(price) || price <= 0) {
+                showToast('يرجى إدخال اسم البطاقة وسعر البيع الصحيح', 'error');
+                return;
+            }
+
+            const iconByCat = { telecom: 'fa-tower-cell', internet: 'fa-globe', gaming: 'fa-gamepad', shopping: 'fa-bag-shopping' };
+            const newId = 'prod-' + Date.now();
+
+            productsList.unshift({
+                id: newId,
+                title,
+                provider,
+                category,
+                price,
+                cost,
+                active: true,
+                badge,
+                gradient,
+                icon: iconByCat[category] || 'fa-credit-card',
+                hint: 'أدخل الكود المرفق في التطبيق أو عبر رمز التعبئة'
+            });
+
+            // تهيئة 3 أكواد جاهزة في الخزنة للمنتج الجديد
+            codesVault[newId] = [
+                { code: generateRandomCode16(), status: 'available', addedAt: '2026-11-07' },
+                { code: generateRandomCode16(), status: 'available', addedAt: '2026-11-07' },
+                { code: generateRandomCode16(), status: 'available', addedAt: '2026-11-07' }
+            ];
+
+            saveProducts();
+            saveVault();
+
+            document.getElementById('prod-title-input').value = '';
+            document.getElementById('prod-price-input').value = '';
+            document.getElementById('prod-cost-input').value = '';
+            document.getElementById('prod-badge-input').value = '';
+
+            renderCurrentAdminUI();
+            showToast(`تمت إضافة "${title}" وحفظها في المتجر بنجاح!`, 'success');
+        }
+
+        function updateProductField(productId, field, rawVal) {
+            if (!activeAdmin?.permissions?.pricing) {
+                showToast('ليس لديك صلاحية تعديل الأسعار!', 'error');
+                renderProductsTable();
+                return;
+            }
+            const val = parseInt(rawVal, 10);
+            if (isNaN(val) || val < 0) return;
+
+            const prod = productsList.find(p => p.id === productId);
+            if (prod) {
+                prod[field] = val;
+                saveProducts();
+                renderCurrentAdminUI();
+                showToast(`تم تحديث ${field === 'price' ? 'سعر البيع' : 'سعر التكلفة'} لـ ${prod.title}`, 'success');
+            }
+        }
+
+        function toggleProductActive(productId) {
+            if (!activeAdmin?.permissions?.pricing) {
+                showToast('ليس لديك صلاحية تغيير حالة المنتجات!', 'error');
+                return;
+            }
+            const prod = productsList.find(p => p.id === productId);
+            if (prod) {
+                prod.active = !prod.active;
+                saveProducts();
+                renderCurrentAdminUI();
+                showToast(`تم ${prod.active ? 'تفعيل' : 'إيقاف'} البطاقة: ${prod.title}`, 'info');
+            }
+        }
+
+        function deleteProductItem(productId) {
+            if (!activeAdmin?.permissions?.pricing) {
+                showToast('ليس لديك صلاحية حذف المنتجات!', 'error');
+                return;
+            }
+            const idx = productsList.findIndex(p => p.id === productId);
+            if (idx !== -1) {
+                const deleted = productsList.splice(idx, 1)[0];
+                saveProducts();
+                renderCurrentAdminUI();
+                showToast(`تم حذف "${deleted.title}" من المتجر`, 'info');
+            }
+        }
+
+        // =====================================================================
+        // 6. خزنة الأكواد الرقمية (Digital Codes Vault)
+        // =====================================================================
+
+        function generateRandomCode16() {
+            const seg = () => Math.floor(1000 + Math.random() * 9000);
+            return `${seg()}-${seg()}-${seg()}-${seg()}`;
+        }
+
+        function renderVaultSection() {
+            const selectEl = document.getElementById('vault-select-product');
+            const currentVal = selectEl.value;
+
+            selectEl.innerHTML = productsList.map(p => `
+                <option value="${p.id}">${p.title} (المتوفر: ${getAvailableStock(p.id)})</option>
+            `).join('');
+
+            if (currentVal && productsList.some(p => p.id === currentVal)) {
+                selectEl.value = currentVal;
+            }
+
+            const overviewGrid = document.getElementById('vault-overview-cards');
+            overviewGrid.innerHTML = productsList.map(p => {
+                const cnt = getAvailableStock(p.id);
+                const isLow = cnt < 3;
+                return `
+                    <div onclick="document.getElementById('vault-select-product').value='${p.id}'; renderVaultInspector();"
+                        class="cursor-pointer p-3 rounded-xl bg-slate-50 dark:bg-admin-surface/60 hover:bg-slate-100 dark:hover:bg-admin-surface border ${isLow ? 'border-rose-500/50' : 'border-slate-200 dark:border-slate-800'} flex items-center justify-between transition">
+                        <div>
+                            <p class="text-xs font-bold">${p.title}</p>
+                            <span class="text-[11px] ${isLow ? 'text-rose-500 font-bold' : 'text-slate-500'}">
+                                ${isLow ? '⚠️ مخزون منخفض' : 'مخزون متوفر'}
+                            </span>
+                        </div>
+                        <span class="px-2.5 py-1 rounded-lg text-xs font-extrabold ${isLow ? 'bg-rose-500/20 text-rose-500' : 'bg-emerald-500/15 text-emerald-500'}">
+                            ${cnt}
+                        </span>
+                    </div>
+                `;
+            }).join('');
+
+            renderVaultInspector();
+        }
+
+        function renderVaultInspector() {
+            const prodId = document.getElementById('vault-select-product').value;
+            const prod = productsList.find(p => p.id === prodId);
+            const list = codesVault[prodId] || [];
+            const avail = list.filter(c => c.status === 'available').length;
+            const sold = list.filter(c => c.status === 'sold').length;
+
+            document.getElementById('vault-inspector-heading').textContent = `أكواد: ${prod ? prod.title : ''}`;
+            document.getElementById('vault-inspector-stats').textContent = `متاح: ${avail} | مباع: ${sold}`;
+
+            const listEl = document.getElementById('vault-codes-inspector-list');
+            if (list.length === 0) {
+                listEl.innerHTML = `<p class="text-center text-xs text-slate-400 py-6">لا توجد أكواد مخزنة لهذه البطاقة.</p>`;
+                return;
+            }
+
+            listEl.innerHTML = list.map(entry => `
+                <div class="px-3 py-2 rounded-lg bg-slate-50 dark:bg-admin-dark border border-slate-200 dark:border-slate-800 flex items-center justify-between text-xs">
+                    <span dir="ltr" class="font-mono font-bold ${entry.status === 'available' ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400 line-through'}">${entry.code}</span>
+                    ${entry.status === 'available'
+                        ? `<span class="text-[10px] bg-emerald-500/15 text-emerald-500 px-2 py-0.5 rounded font-bold">متاح</span>`
+                        : `<span class="text-[10px] bg-slate-200 dark:bg-slate-800 text-slate-500 px-2 py-0.5 rounded">مباع (${entry.soldTo || 'زبون'})</span>`
+                    }
+                </div>
+            `).join('');
+        }
+
+        function fillRandomDemoCodes() {
+            const generated = Array.from({ length: 5 }, () => generateRandomCode16()).join('\n');
+            const ta = document.getElementById('vault-codes-textarea');
+            ta.value = (ta.value.trim() ? ta.value.trim() + '\n' : '') + generated;
+        }
+
+        function importCodesToVault() {
+            if (!activeAdmin?.permissions?.stock) {
+                showToast('ليس لديك صلاحية تغذية الخزنة بالأكواد!', 'error');
+                return;
+            }
+
+            const prodId = document.getElementById('vault-select-product').value;
+            const raw = document.getElementById('vault-codes-textarea').value.trim();
+            if (!raw) {
+                showToast('يرجى إدخال كود واحد على الأقل!', 'error');
+                return;
+            }
+
+            const lines = raw.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+            if (!codesVault[prodId]) codesVault[prodId] = [];
+
+            lines.forEach(code => {
+                codesVault[prodId].unshift({
+                    code,
+                    status: 'available',
+                    addedAt: new Date().toISOString().slice(0, 10)
+                });
+            });
+
+            saveVault();
+            document.getElementById('vault-codes-textarea').value = '';
+            renderCurrentAdminUI();
+            showToast(`تمت إضافة ${lines.length} كود جديد إلى الخزنة بنجاح!`, 'success');
+        }
+
+        // =====================================================================
+        // 7. سجل الطلبات الكامل وتصدير CSV (Orders & CSV Export)
+        // =====================================================================
+
+        function renderOrdersTable() {
+            const tbody = document.getElementById('orders-table-body');
+            const q = document.getElementById('orders-search-input').value.trim().toLowerCase();
+            const st = document.getElementById('orders-status-select').value;
+
+            const filtered = ordersList.filter(o => {
+                const matchSt = st === 'all' || o.status === st;
+                const matchQ = !q ||
+                    (o.orderId || '').toLowerCase().includes(q) ||
+                    (o.customerName || '').toLowerCase().includes(q) ||
+                    (o.customerPhone || '').toLowerCase().includes(q) ||
+                    (o.title || '').toLowerCase().includes(q) ||
+                    (o.code || '').toLowerCase().includes(q);
+                return matchSt && matchQ;
+            });
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" class="p-8 text-center text-xs text-slate-400">لا توجد طلبات مطابقة لنتيجة البحث.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = filtered.map(o => {
+                const refunded = o.status === 'refunded';
+                return `
+                    <tr class="hover:bg-slate-50 dark:hover:bg-admin-surface/40 transition">
+                        <td class="p-3.5 font-mono text-xs font-bold text-indigo-500">#${o.orderId}</td>
+                        <td class="p-3.5">
+                            <p class="text-xs font-bold">${o.customerName || 'زبون المتجر'}</p>
+                            <span dir="ltr" class="text-[11px] font-mono text-slate-400">${o.customerPhone || '+964 770 000 0000'}</span>
+                        </td>
+                        <td class="p-3.5 text-xs font-semibold">${o.title}</td>
+                        <td class="p-3.5">
+                            <span class="block text-xs font-extrabold text-emerald-500">${formatIQD(o.price)}</span>
+                            <span class="text-[11px] text-slate-400">${o.method}</span>
+                        </td>
+                        <td class="p-3.5 font-mono text-xs" dir="ltr">${o.code}</td>
+                        <td class="p-3.5">
+                            ${refunded
+                                ? `<span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-rose-500/15 text-rose-500">مسترجع</span>`
+                                : `<span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-500/15 text-emerald-500">مكتمل</span>`
+                            }
+                        </td>
+                        <td class="p-3.5 text-center">
+                            ${refunded
+                                ? `<span class="text-[11px] text-slate-400">تم الاسترجاع</span>`
+                                : `<button onclick="refundOrderAction('${o.orderId}')" class="px-3 py-1.5 rounded-lg bg-rose-500/15 hover:bg-rose-500 text-rose-500 hover:text-white text-xs font-bold transition">إلغاء واسترجاع</button>`
+                            }
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function refundOrderAction(orderId) {
+            if (!activeAdmin?.permissions?.refund) {
+                showToast('ليس لديك صلاحية استرجاع الطلبات!', 'error');
+                return;
+            }
+            const order = ordersList.find(o => o.orderId === orderId);
+            if (!order || order.status === 'refunded') return;
+
+            order.status = 'refunded';
+            saveOrders();
+            renderCurrentAdminUI();
+            showToast(`تم إلغاء الطلب #${orderId} وتسجيل استرجاع ${formatIQD(order.price)}`, 'info');
+        }
+
+        function exportOrdersToCSV() {
+            const headers = ['Order ID', 'Customer Name', 'Phone', 'Product', 'Price (IQD)', 'Payment Method', 'Code', 'Status', 'Date'];
+            const rows = ordersList.map(o => [
+                o.orderId,
+                `"${o.customerName || ''}"`,
+                `"${o.customerPhone || ''}"`,
+                `"${o.title}"`,
+                o.price,
+                `"${o.method}"`,
+                o.code,
+                o.status,
+                `"${o.date}"`
+            ]);
+
+            const csvContent = '\uFEFF' + [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `cartak_iq_orders_${new Date().toISOString().slice(0, 10)}.csv`;
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast('تم تصدير سجل الطلبات بصيغة CSV بنجاح', 'success');
+        }
+
+        // =====================================================================
+        // 8. إدارة المشرفين والصلاحيات (Staff & Permissions)
+        // =====================================================================
+
+        function renderStaffSection() {
+            const grid = document.getElementById('staff-cards-grid');
+            grid.innerHTML = staffList.map(stf => `
+                <div class="bg-white dark:bg-admin-card border border-slate-200 dark:border-slate-800 rounded-2xl p-4 space-y-3">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <div class="w-11 h-11 rounded-xl bg-amber-500/20 text-amber-500 flex items-center justify-center font-extrabold text-base">
+                                ${stf.name.charAt(0)}
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-sm">${stf.name}</h4>
+                                <span class="text-xs text-amber-500 font-bold">${stf.role}</span> • <span class="text-[11px] font-mono text-slate-400">PIN: ${stf.pin}</span>
+                            </div>
+                        </div>
+                        ${stf.id !== 'adm-1'
+                            ? `<button onclick="removeStaffMember('${stf.id}')" class="w-8 h-8 rounded-lg bg-rose-500/15 hover:bg-rose-500 text-rose-500 hover:text-white transition"><i class="fa-solid fa-trash text-xs"></i></button>`
+                            : `<span class="text-[10px] bg-emerald-500/15 text-emerald-500 px-2.5 py-1 rounded-full font-bold">المدير الرئيسي</span>`
+                        }
+                    </div>
+
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-3 border-t border-slate-200 dark:border-slate-800 text-xs">
+                        <label class="flex items-center gap-1.5 cursor-pointer">
+                            <input type="checkbox" ${stf.permissions.stock ? 'checked' : ''} onchange="toggleStaffPermission('${stf.id}', 'stock')" class="accent-amber-500">
+                            <span>الخزنة</span>
+                        </label>
+                        <label class="flex items-center gap-1.5 cursor-pointer">
+                            <input type="checkbox" ${stf.permissions.pricing ? 'checked' : ''} onchange="toggleStaffPermission('${stf.id}', 'pricing')" class="accent-amber-500">
+                            <span>الأسعار</span>
+                        </label>
+                        <label class="flex items-center gap-1.5 cursor-pointer">
+                            <input type="checkbox" ${stf.permissions.refund ? 'checked' : ''} onchange="toggleStaffPermission('${stf.id}', 'refund')" class="accent-amber-500">
+                            <span>الاسترجاع</span>
+                        </label>
+                        <label class="flex items-center gap-1.5 cursor-pointer">
+                            <input type="checkbox" ${stf.permissions.settings ? 'checked' : ''} onchange="toggleStaffPermission('${stf.id}', 'settings')" class="accent-amber-500">
+                            <span>الإعدادات</span>
+                        </label>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function toggleStaffPermission(staffId, permKey) {
+            if (!activeAdmin?.permissions?.staff) {
+                showToast('فقط المدير العام يمكنه تعديل الصلاحيات!', 'error');
+                renderStaffSection();
+                return;
+            }
+            const member = staffList.find(s => s.id === staffId);
+            if (member) {
+                member.permissions[permKey] = !member.permissions[permKey];
+                saveStaff();
+                showToast(`تم تحديث صلاحيات ${member.name}`, 'success');
+            }
+        }
+
+        function addStaffMember() {
+            if (!activeAdmin?.permissions?.staff) {
+                showToast('فقط المدير العام يمكنه إضافة مشرفين جدد!', 'error');
+                return;
+            }
+            const name = document.getElementById('staff-name-input').value.trim();
+            const role = document.getElementById('staff-role-input').value;
+            const pin = document.getElementById('staff-pin-input').value.trim() || '1234';
+
+            if (name.length < 3) {
+                showToast('يرجى إدخال اسم المشرف بشكل صحيح', 'error');
+                return;
+            }
+
+            staffList.push({
+                id: 'adm-' + Date.now(),
+                name,
+                role,
+                pin,
+                permissions: {
+                    stock: true,
+                    pricing: role === 'مدير عام' || role === 'محاسب مالي',
+                    refund: role === 'مدير عام' || role === 'مشرف مبيعات',
+                    staff: role === 'مدير عام',
+                    settings: role === 'مدير عام'
+                }
+            });
+
+            saveStaff();
+            populateLoginDropdown();
+            document.getElementById('staff-name-input').value = '';
+            document.getElementById('staff-pin-input').value = '';
+            renderStaffSection();
+            showToast(`تمت إضافة المشرف ${name} بنجاح`, 'success');
+        }
+
+        function removeStaffMember(staffId) {
+            if (!activeAdmin?.permissions?.staff) {
+                showToast('فقط المدير العام يمكنه حذف المشرفين!', 'error');
+                return;
+            }
+            staffList = staffList.filter(s => s.id !== staffId);
+            saveStaff();
+            populateLoginDropdown();
+            renderStaffSection();
+            showToast('تم حذف حساب المشرف', 'info');
+        }
+
+        // =====================================================================
+        // 9. إعدادات النظام وبوابات الدفع والنسخ الاحتياطي (Settings & Backup)
+        // =====================================================================
+
+        function renderSettingsSection() {
+            document.getElementById('set-gw-zaincash').checked = !!systemSettings.gateways?.zaincash;
+            document.getElementById('set-gw-qicard').checked = !!systemSettings.gateways?.qicard;
+            document.getElementById('set-gw-asiahawala').checked = !!systemSettings.gateways?.asiahawala;
+            document.getElementById('set-store-name').value = systemSettings.storeName || 'كارتك العراق | Cartak IQ';
+            document.getElementById('set-commission-rate').value = systemSettings.commissionRate ?? 1.5;
+            document.getElementById('set-maintenance-mode').checked = !!systemSettings.maintenanceMode;
+
+            const statusEl = document.getElementById('sidebar-store-status');
+            if (systemSettings.maintenanceMode) {
+                statusEl.textContent = 'وضع الصيانة (متوقف)';
+                statusEl.className = 'font-bold text-rose-500';
+            } else {
+                statusEl.textContent = 'يعمل (Online)';
+                statusEl.className = 'font-bold text-emerald-500';
+            }
+        }
+
+        function saveSystemSettings() {
+            if (!activeAdmin?.permissions?.settings) {
+                showToast('ليس لديك صلاحية تعديل إعدادات النظام!', 'error');
+                return;
+            }
+
+            systemSettings = {
+                storeName: document.getElementById('set-store-name').value.trim() || 'كارتك العراق | Cartak IQ',
+                commissionRate: parseFloat(document.getElementById('set-commission-rate').value) || 0,
+                maintenanceMode: document.getElementById('set-maintenance-mode').checked,
+                gateways: {
+                    zaincash: document.getElementById('set-gw-zaincash').checked,
+                    qicard: document.getElementById('set-gw-qicard').checked,
+                    asiahawala: document.getElementById('set-gw-asiahawala').checked
+                }
+            };
+
+            saveSettings();
+            renderSettingsSection();
+            showToast('تم حفظ إعدادات بوابات الدفع والنظام ومزامنتها!', 'success');
+        }
+
+        function downloadBackupJSON() {
+            const backupPayload = {
+                exportedAt: new Date().toISOString(),
+                products: productsList,
+                vault: codesVault,
+                orders: ordersList,
+                staff: staffList,
+                settings: systemSettings
+            };
+            const blob = new Blob([JSON.stringify(backupPayload, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `cartak_iq_backup_${new Date().toISOString().slice(0, 10)}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast('تم تحميل النسخة الاحتياطية بصيغة JSON', 'success');
+        }
+
+        function restoreBackupJSON(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    if (data.products) productsList = data.products;
+                    if (data.vault) codesVault = data.vault;
+                    if (data.orders) ordersList = data.orders;
+                    if (data.staff) staffList = data.staff;
+                    if (data.settings) systemSettings = data.settings;
+
+                    saveProducts();
+                    saveVault();
+                    saveOrders();
+                    saveStaff();
+                    saveSettings();
+
+                    populateLoginDropdown();
+                    renderCurrentAdminUI();
+                    showToast('تمت استعادة قاعدة البيانات من النسخة الاحتياطية بنجاح!', 'success');
+                } catch (err) {
+                    showToast('ملف النسخة الاحتياطية غير صالح!', 'error');
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        // =====================================================================
+        // 10. نظام الإشعارات (Toast System)
+        // =====================================================================
+
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+
+            let borderClass = 'border-emerald-500';
+            let icon = '<i class="fa-solid fa-circle-check text-emerald-500 text-lg"></i>';
+
+            if (type === 'error') {
+                borderClass = 'border-rose-500';
+                icon = '<i class="fa-solid fa-circle-exclamation text-rose-500 text-lg"></i>';
+            } else if (type === 'info') {
+                borderClass = 'border-amber-500';
+                icon = '<i class="fa-solid fa-circle-info text-amber-500 text-lg"></i>';
+            }
+
+            toast.className = `pointer-events-auto bg-white dark:bg-slate-900 text-slate-900 dark:text-white border-r-4 ${borderClass} rounded-xl px-4 py-3 shadow-2xl flex items-center gap-3 text-xs sm:text-sm font-bold transition-all duration-300`;
+            toast.innerHTML = `${icon}<span>${message}</span>`;
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateY(-10px)';
+                setTimeout(() => toast.remove(), 300);
+            }, 3200);
+        }
+
+        // تهيئة التطبيق عند التشغيل
+        window.addEventListener('DOMContentLoaded', () => {
+            loadAllDataFromStorage();
+            populateLoginDropdown();
+            updateLastSyncTimestamp();
+        });
+    </script>
+</body>
+</html>
